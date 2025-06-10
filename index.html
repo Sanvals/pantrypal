@@ -3,9 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pantry Pal</title>
+    <title>🍛 Pantry-Pal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .category-btn {
+            /* Add transition to the image for smooth scaling both ways */
+            transition: all 0.2s ease-in-out; 
+        }
+
+        .category-btn.selected {
+            border-color: #6366f1 !important; /* indigo-500 */
+            background-color: #a5b4fc !important; /* indigo-300 */
+            color: #312e81 !important; /* indigo-900 */
+            transform: scale(1.05); /* The button itself still scales slightly */
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.3); /* The button itself still has a shadow */
+        }
+        
+        /* When the button is selected, make the image inside bigger */
+        .category-btn.selected img {
+            transform: scale(1.2); /* Make the image 20% larger */
+            transition: transform 0.6s ease-out; /* Smooth transition for the image when selected */
+        }
+
+        /* Ensure the image scales back smoothly when unselected */
+        .category-btn img {
+             transition: transform 0.6s ease-in; /* Smooth transition for the image when unselected */
+        }
+
+        .category-btn.selected svg {
+            color: #312e81 !important; /* indigo-900 */
+        }
+    </style>
 </head>
-<body>
-    <h1>Welcome to Pantry Pal</h1>
+<body class="bg-gradient-to-br from-purple-100 via-rose-100 to-amber-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-sm mx-auto bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 space-y-4">
+        
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-gray-800">FuelLog</h1>
+            <p class="text-gray-500 mt-1">What did we have today? ✨</p>
+        </div>
+
+        <div>
+            <label class="text-md font-semibold text-gray-700">Category</label>
+            <div id="category-container" class="grid grid-cols-3 gap-3 mt-2">
+                <button class="category-btn flex flex-col items-center justify-center p-2 border-2 rounded-xl transition-all duration-200 ease-in-out bg-sky-100 border-sky-200 hover:border-sky-400" data-category="Breakfast">
+                    <img src="https://cdn-icons-png.flaticon.com/512/9702/9702245.png">
+                    <span class="mt-1.5 text-xs font-medium text-sky-800">Breakfast</span>
+                </button>
+                <button class="category-btn flex flex-col items-center justify-center p-2 border-2 rounded-xl transition-all duration-200 ease-in-out bg-violet-100 border-violet-200 hover:border-violet-400" data-category="Collagen">
+                     <img src="https://cdn-icons-png.flaticon.com/512/11210/11210895.png">
+                    <span class="mt-1.5 text-xs font-medium text-violet-800">Collagen</span>
+                </button>
+                <button class="category-btn flex flex-col items-center justify-center p-2 border-2 rounded-xl transition-all duration-200 ease-in-out bg-amber-100 border-amber-200 hover:border-amber-400" data-category="Coffee">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1448/1448438.png">
+                    <span class="mt-1.5 text-xs font-medium text-amber-800">Coffee</span>
+                </button>
+                <button class="category-btn flex flex-col items-center justify-center p-2 border-2 rounded-xl transition-all duration-200 ease-in-out bg-lime-100 border-lime-200 hover:border-lime-400" data-category="Lunch">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2515/2515271.png">
+                    <span class="mt-1.5 text-xs font-medium text-lime-800">Lunch</span>
+                </button>
+                <button class="category-btn flex flex-col items-center justify-center p-2 border-2 rounded-xl transition-all duration-200 ease-in-out bg-teal-100 border-teal-200 hover:border-teal-400" data-category="Exercise">
+                     <img src="https://cdn-icons-png.flaticon.com/512/7681/7681038.png">
+                    <span class="mt-1.5 text-xs font-medium text-teal-800">Exercise</span>
+                </button>
+                <button class="category-btn flex flex-col items-center justify-center p-2 border-2 rounded-xl transition-all duration-200 ease-in-out bg-slate-100 border-slate-200 hover:border-slate-400" data-category="Other">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7245/7245102.png">
+                    <span class="mt-1.5 text-xs font-medium text-slate-800">Other</span>
+                </button>
+            </div>
+             <input type="hidden" id="selected-category" name="category">
+        </div>
+
+        <div class="space-y-3">
+            <div>
+                <label for="description" class="text-md font-semibold text-gray-700">Description <span class="text-sm font-normal text-gray-400">(optional)</span></label>
+                <input type="text" id="description" name="description" placeholder="e.g., Avocado toast" class="w-full mt-1.5 p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-shadow bg-white/70">
+            </div>
+            <div>
+                <label for="kcal" class="text-md font-semibold text-gray-700">Kcal</label>
+                <input type="number" id="kcal" name="kcal" placeholder="e.g., 350" class="w-full mt-1.5 p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-shadow bg-white/70">
+            </div>
+        </div>
+        
+        <button id="send-btn" class="w-full flex items-center justify-center p-3 bg-rose-500 text-white text-lg font-bold rounded-xl shadow-md hover:bg-rose-600 active:bg-rose-700 transition-all duration-200 transform hover:scale-105 active:scale-100">
+            Send to Notion
+            <svg class="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </button>
+        
+        <div id="message-area" class="text-center text-green-600 font-medium h-5"></div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const categoryContainer = document.getElementById('category-container');
+            const hiddenCategoryInput = document.getElementById('selected-category');
+            const kcalInput = document.getElementById('kcal'); 
+            const sendBtn = document.getElementById('send-btn');
+            const messageArea = document.getElementById('message-area');
+
+            // Define placeholder values for each category
+            const kcalPlaceholders = {
+                "Coffee": "50",
+                "Breakfast": "311",
+                "Lunch": "800",
+                "Collagen": "40"
+            };
+
+            // --- Logic for Category Selection ---
+            categoryContainer.addEventListener('click', function(e) {
+                const clickedButton = e.target.closest('.category-btn');
+                if (!clickedButton) return;
+
+                const allButtons = categoryContainer.querySelectorAll('.category-btn');
+                allButtons.forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+
+                clickedButton.classList.add('selected');
+                hiddenCategoryInput.value = clickedButton.dataset.category;
+
+                // Update kcal input placeholder based on selected category
+                const selectedCategory = hiddenCategoryInput.value;
+                if (kcalPlaceholders[selectedCategory]) {
+                    kcalInput.placeholder = kcalPlaceholders[selectedCategory];
+                } else {
+                    kcalInput.placeholder = "e.g., 350"; // Default placeholder if not specified
+                }
+            });
+
+            // --- Logic for the Send Button ---
+            sendBtn.addEventListener('click', function() {
+                const category = hiddenCategoryInput.value;
+                const description = document.getElementById('description').value;
+                const kcal = kcalInput.value; 
+
+                // Simple validation
+                if (!category) {
+                    messageArea.textContent = 'Please select a category!';
+                    messageArea.style.color = '#dc2626'; // red-600
+                    return;
+                }
+                if (!kcal) {
+                    messageArea.textContent = 'Please enter the kcal amount!';
+                    messageArea.style.color = '#dc2626'; // red-600
+                    return;
+                }
+
+                const data = {
+                    category: category,
+                    description: description || 'No description',
+                    kcal: parseInt(kcal, 10),
+                    date: new Date().toISOString()
+                };
+                
+                console.log('Data to send:', data);
+
+                messageArea.textContent = 'Sent! ✨';
+                messageArea.style.color = '#16a34a'; // green-600
+                
+                // Clear the message and inputs after a couple of seconds
+                setTimeout(() => {
+                    messageArea.textContent = '';
+                    hiddenCategoryInput.value = '';
+                    document.getElementById('description').value = '';
+                    kcalInput.value = ''; 
+                    kcalInput.placeholder = "e.g., 350"; // Reset to default placeholder
+                    const allButtons = categoryContainer.querySelectorAll('.category-btn');
+                    allButtons.forEach(btn => btn.classList.remove('selected'));
+                }, 2000);
+            });
+        });
+    </script>
+
 </body>
 </html>
