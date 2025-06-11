@@ -257,26 +257,27 @@
                 const selectedCategory = clickedButton.dataset.category; // Get selected category directly
                 hiddenCategoryInput.value = selectedCategory; // Set hidden input value
 
-                // Update placeholder and potentially Kcal input for 'Exercise'
+                // Update placeholder based on selected category
                 if (kcalPlaceholders[selectedCategory]) {
-                    kcalInput.placeholder = `Kcal (e.g., ${kcalPlaceholders[selectedCategory]})`;
-                    // Automatically set Kcal if a placeholder exists and it's positive for Exercise
-                    if (selectedCategory === "Exercise" && kcalInput.value === "") {
-                        kcalInput.value = -Math.abs(parseInt(kcalPlaceholders[selectedCategory] || 0));
-                    }
+                    // For Exercise, display the negative placeholder
+                    const placeholderValue = (selectedCategory === "Exercise") ? -Math.abs(parseInt(kcalPlaceholders[selectedCategory] || 0)) : kcalPlaceholders[selectedCategory];
+                    kcalInput.placeholder = `Kcal (e.g., ${placeholderValue})`;
                 } else {
                     kcalInput.placeholder = "Kcal (e.g., 350)"; // Default placeholder
                 }
 
-                // If 'Exercise' is selected, ensure Kcal is negative
-                if (selectedCategory === "Exercise") {
-                    if (kcalInput.value !== "") {
-                        kcalInput.value = -Math.abs(parseInt(kcalInput.value || 0));
-                    }
-                    kcalInput.focus(); // Focus on Kcal input to encourage entry
-                } else if (parseInt(kcalInput.value) < 0) {
-                    // If not Exercise and Kcal is negative, make it positive
-                    kcalInput.value = Math.abs(parseInt(kcalInput.value));
+                // Focus on Kcal input after category selection
+                kcalInput.focus();
+
+                // If 'Exercise' is selected, and Kcal input has a value, ensure it's negative
+                // If not Exercise, and Kcal input has a value, ensure it's positive
+                // This logic is already handled by the 'input' event listener,
+                // so we don't need to force the value here on category click,
+                // only if the user has already typed something.
+                if (selectedCategory === "Exercise" && kcalInput.value !== "") {
+                     kcalInput.value = -Math.abs(parseInt(kcalInput.value || 0));
+                } else if (selectedCategory !== "Exercise" && kcalInput.value !== "" && parseInt(kcalInput.value) < 0) {
+                     kcalInput.value = Math.abs(parseInt(kcalInput.value));
                 }
             });
 
@@ -454,14 +455,10 @@
                             </div>
                         `;
                     } else {
-                        // **REVERTED: Removed grouping and sorting by category**
                         items.forEach(item => {
                             sumTotalKcal += item.total; // Summing up Kcal for the progress bar
                             // Exclude "Untitled Page" and "Untitled" from description
                             const descriptionPart = (item.name && item.name !== 'Untitled' && item.name !== 'Untitled Page' && item.name.trim() !== '') ? ` - ${item.name}` : '';
-
-                            // **REVERTED: Removed timestamp display**
-                            // const timeString = ''; // No timestamp
 
                             const itemDiv = document.createElement('div');
                             // Increased text size for better readability and space filling
