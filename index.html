@@ -70,11 +70,46 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             line-height: 1; /* Adjust line-height to center the checkmark vertically */
         }
+
+        /* Custom scrollbar for Notion items display */
+        #notion-items-display::-webkit-scrollbar {
+            width: 8px; /* width of the scrollbar */
+        }
+
+        #notion-items-display::-webkit-scrollbar-track {
+            background: #f1f1f1; /* color of the track */
+            border-radius: 10px;
+        }
+
+        #notion-items-display::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* color of the scroll thumb (slate-300) */
+            border-radius: 10px;
+        }
+
+        #notion-items-display::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* color when hovering over thumb (slate-400) */
+        }
+
+        /* Category icon bounce animation */
+        @keyframes category-icon-bounce {
+            0%, 100% { transform: translateY(0) scale(1.25); }
+            50% { transform: translateY(-3px) scale(1.3); } /* Slightly larger bounce */
+        }
+        .category-selected-glow img {
+            animation: category-icon-bounce 0.3s ease-out; /* Apply to the image within the selected button */
+        }
+
     </style>
 </head>
 <body class="font-['Outfit'] bg-gradient-to-br from-purple-100 via-rose-100 to-amber-100 flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-sm mx-auto bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 space-y-2">
+    <svg style="display:none;">
+        <symbol id="icon-flame" viewBox="0 0 24 24">
+            <path d="M12 2C7 2 4 4 4 11c0 5.5 5 11 8 11s8-5.5 8-11c0-7-3-9-8-9zm0 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
+        </symbol>
+    </svg>
+
+    <div class="w-full max-w-sm mx-auto bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 space-y-2">
         
         <div class="text-center">
             <div class="flex items-center justify-center mx-auto mb-2">
@@ -93,7 +128,7 @@
             <div id="kcal-progress-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1500" class="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden">
                 <div id="kcal-progress-fill" class="h-full bg-green-500 transition-all duration-500 ease-in-out" style="width: 0%;"></div>
             </div>
-            <p id="kcal-progress-text" class="text-sm font-semibold text-gray-700 text-center mt-2">0 Kcal / 1500 Kcal</p>
+            <p id="kcal-progress-text" class="text-sm font-semibold text-gray-700 text-center mt-2">0 / 1500 kcal</p>
         </div>
         <div id="section-category" class="space-y-2 mt-4">
             <div>
@@ -133,7 +168,7 @@
                 </div>
                 <div>
                     <label for="kcal" class="sr-only">Kcal</label>
-                    <input type="number" id="kcal" name="kcal" placeholder="Kcal (e.g., 350)" class="mt-1.5 p-3 block w-full border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white/70 shadow-sm">
+                    <input type="number" id="kcal" name="kcal" placeholder="kcal (e.g., 350)" class="mt-1.5 p-3 block w-full border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white/70 shadow-sm">
                 </div>
             </div>
             
@@ -193,8 +228,77 @@
                 "Breakfast": "311",
                 "Lunch": "800",
                 "Collagen": "40",
-                "Exercise": "300" // Added for consistency
+                "Exercise": "300" 
             };
+
+            // --- Dynamic Description Placeholders ---
+            const descriptionPlaceholders = {
+                "Breakfast": [
+                    "Avocado toast with egg",
+                    "Oatmeal with berries",
+                    "Scrambled eggs and bacon",
+                    "Yogurt parfait",
+                    "Pancakes with syrup",
+                    "Smoothie bowl",
+                    "Fruit and muesli"
+                ],
+                "Collagen": [
+                    "Collagen in water",
+                    "Collagen in coffee",
+                    "Collagen smoothie",
+                    "Collagen with juice",
+                    "Collagen mixed into yogurt"
+                ],
+                "Coffee": [
+                    "Black coffee",
+                    "Latte with oat milk",
+                    "Espresso shot",
+                    "Cappuccino",
+                    "Iced Americano",
+                    "Flat white",
+                    "Mocha"
+                ],
+                "Lunch": [
+                    "Chicken salad",
+                    "Pasta with pesto",
+                    "Vegetable stir-fry",
+                    "Sandwich with turkey",
+                    "Sushi rolls",
+                    "Quinoa salad",
+                    "Lentil soup"
+                ],
+                "Exercise": [
+                    "30 min run",
+                    "Weightlifting session (legs)",
+                    "Yoga flow (60 min)",
+                    "Cycling (1 hour)",
+                    "Swimming laps (30 min)",
+                    "HIIT workout",
+                    "Boxing training"
+                ],
+                "Other": [
+                    "Snack (e.g., Apple)",
+                    "Dessert (e.g., Chocolate)",
+                    "Random drink (e.g., Soda)",
+                    "Supplement intake (e.g., Vitamin D)",
+                    "Midnight snack",
+                    "Something sweet"
+                ]
+            };
+
+            // Helper function to get a random item from an array
+            function getRandomItem(arr) {
+                if (!arr || arr.length === 0) return "";
+                const randomIndex = Math.floor(Math.random() * arr.length);
+                return arr[randomIndex];
+            }
+
+            // Function to set description placeholder based on category
+            function updateDescriptionPlaceholder(category) {
+                const randomText = getRandomItem(descriptionPlaceholders[category] || descriptionPlaceholders["Other"]);
+                descriptionInput.placeholder = `Description (e.g., ${randomText})`;
+            }
+
 
             // --- Tab Switching Logic ---
             const tabBaseClasses = ['flex-1', 'py-2', 'px-3', 'text-center', 'text-base', 'font-bold', 'rounded-t-xl', 'cursor-pointer', 'transition-colors', 'duration-200'];
@@ -228,7 +332,15 @@
             }
 
             // --- Logic for Category Selection ---
-            const categorySelectedClasses = ['border-indigo-500', 'bg-indigo-300', 'text-indigo-900', 'scale-105', 'shadow-lg', 'category-selected-glow', 'category-selected-checkmark'];
+            const categorySelectedClasses = [
+                'border-indigo-500', 
+                'bg-gradient-to-br', 'from-indigo-300', 'to-indigo-400', /* Gradient for selection */
+                'text-white', 
+                'scale-105', 
+                'shadow-lg', 
+                'category-selected-glow', 
+                'category-selected-checkmark'
+            ];
             const categoryDefaultImgClasses = ['transition-transform', 'duration-600', 'ease-in'];
 
             categoryContainer.addEventListener('click', function(e) {
@@ -238,8 +350,19 @@
                 const allButtons = categoryContainer.querySelectorAll('button');
                 allButtons.forEach(btn => {
                     btn.classList.remove(...categorySelectedClasses);
-                    // Remove checkmark via class removal
-                    btn.classList.remove('category-selected-checkmark');
+                    // Revert to original background and text colors if not selected
+                    const categoryData = btn.dataset.category;
+                    const defaultColorClasses = {
+                        "Breakfast": "border-sky-200 bg-sky-100 text-sky-800 hover:border-sky-400",
+                        "Collagen": "border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400",
+                        "Coffee": "border-amber-200 bg-amber-100 text-amber-800 hover:border-amber-400",
+                        "Lunch": "border-lime-200 bg-lime-100 text-lime-800 hover:border-lime-400",
+                        "Exercise": "border-teal-200 bg-teal-100 text-teal-800 hover:border-teal-400",
+                        "Other": "border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400",
+                    };
+                    // Clear previous specific classes and apply defaults
+                    btn.className = `relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out ${defaultColorClasses[categoryData]}`;
+
                     const img = btn.querySelector('img');
                     if (img) {
                         img.classList.remove('scale-125', 'ease-out');
@@ -247,6 +370,7 @@
                     }
                 });
 
+                // Apply selected classes, including the gradient and white text
                 clickedButton.classList.add(...categorySelectedClasses);
                 const clickedImg = clickedButton.querySelector('img');
                 if (clickedImg) {
@@ -254,31 +378,26 @@
                     clickedImg.classList.remove('ease-in');
                 }
                 
-                const selectedCategory = clickedButton.dataset.category; // Get selected category directly
-                hiddenCategoryInput.value = selectedCategory; // Set hidden input value
+                const selectedCategory = clickedButton.dataset.category; 
+                hiddenCategoryInput.value = selectedCategory; 
 
-                // Update placeholder based on selected category
+                // --- Update Kcal placeholder based on selected category ---
                 if (kcalPlaceholders[selectedCategory]) {
-                    // For Exercise, display the negative placeholder
                     const placeholderValue = (selectedCategory === "Exercise") ? -Math.abs(parseInt(kcalPlaceholders[selectedCategory] || 0)) : kcalPlaceholders[selectedCategory];
-                    kcalInput.placeholder = `Kcal (e.g., ${placeholderValue})`;
+                    kcalInput.placeholder = `kcal (e.g., ${placeholderValue})`;
                 } else {
-                    kcalInput.placeholder = "Kcal (e.g., 350)"; // Default placeholder
+                    kcalInput.placeholder = "kcal (e.g., 350)"; 
                 }
 
-                // Focus on Kcal input after category selection
-                kcalInput.focus();
-
-                // If 'Exercise' is selected, and Kcal input has a value, ensure it's negative
-                // If not Exercise, and Kcal input has a value, ensure it's positive
-                // This logic is already handled by the 'input' event listener,
-                // so we don't need to force the value here on category click,
-                // only if the user has already typed something.
                 if (selectedCategory === "Exercise" && kcalInput.value !== "") {
                      kcalInput.value = -Math.abs(parseInt(kcalInput.value || 0));
                 } else if (selectedCategory !== "Exercise" && kcalInput.value !== "" && parseInt(kcalInput.value) < 0) {
                      kcalInput.value = Math.abs(parseInt(kcalInput.value));
                 }
+                
+                // --- Update Description placeholder dynamically ---
+                updateDescriptionPlaceholder(selectedCategory);
+                descriptionInput.focus(); 
             });
 
             // Listen for changes in the Kcal input to ensure 'Exercise' values stay negative
@@ -291,14 +410,28 @@
                 }
             });
 
+            // --- "Enter" key submission logic ---
+            descriptionInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); 
+                    sendBtn.click();
+                }
+            });
+            kcalInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendBtn.click();
+                }
+            });
+
+
             // --- Function to send data to Notion via backend (POST request) ---
             async function sendToNotion(data) {
-                messageArea.textContent = ''; // Clear message area
-                sendBtn.disabled = true; // Disable button
-                sendBtnContent.classList.add('hidden'); // Hide original content
-                sendBtnLoadingText.classList.remove('hidden'); // Show loading text
+                messageArea.textContent = ''; 
+                sendBtn.disabled = true; 
+                sendBtnContent.classList.add('hidden'); 
+                sendBtnLoadingText.classList.remove('hidden'); 
 
-                // Apply gray background, pulse animation, and disable cursor
                 sendBtn.classList.remove('bg-rose-500', 'text-white', 'hover:bg-rose-600', 'active:bg-rose-700', 'shadow-md');
                 sendBtn.classList.add('bg-gray-400', 'text-gray-600', 'send-button-pulse', 'cursor-not-allowed');
 
@@ -319,30 +452,48 @@
 
                     const result = await response.json();
                     console.log('Successfully sent to Notion via backend:', result);
-                    loadNotionItems(); // Refresh data after sending
+                    
+                    // Immediately clear inputs on success
+                    hiddenCategoryInput.value = '';
+                    descriptionInput.value = '';
+                    kcalInput.value = ''; 
+                    kcalInput.placeholder = "kcal (e.g., 350)"; 
+                    
+                    // Reset description placeholder after clearing inputs (e.g., to a default random breakfast)
+                    updateDescriptionPlaceholder("Breakfast"); 
+
+                    const allButtons = categoryContainer.querySelectorAll('button');
+                    allButtons.forEach(btn => {
+                        btn.classList.remove(...categorySelectedClasses);
+                        const categoryData = btn.dataset.category;
+                        const defaultColorClasses = {
+                            "Breakfast": "border-sky-200 bg-sky-100 text-sky-800 hover:border-sky-400",
+                            "Collagen": "border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400",
+                            "Coffee": "border-amber-200 bg-amber-100 text-amber-800 hover:border-amber-400",
+                            "Lunch": "border-lime-200 bg-lime-100 text-lime-800 hover:border-lime-400",
+                            "Exercise": "border-teal-200 bg-teal-100 text-teal-800 hover:border-teal-400",
+                            "Other": "border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400",
+                        };
+                        btn.className = `relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out ${defaultColorClasses[categoryData]}`;
+                        const img = btn.querySelector('img');
+                        if (img) {
+                            img.classList.remove('scale-125', 'ease-out');
+                            img.classList.add('ease-in'); 
+                        }
+                    });
+
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50); 
+                    }
+
+                    loadNotionItems(); 
                 } catch (error) {
                     console.error('Failed to send to Notion:', error);
                     messageArea.textContent = `Error: ${error.message || 'Network error'}`;
-                    messageArea.style.color = '#dc2626'; // Red for error
+                    messageArea.style.color = '#dc2626'; 
                 } finally {
-                    // Restore button state after a short delay for user feedback
                     setTimeout(() => {
-                        messageArea.textContent = ''; // Clear message after delay
-                        hiddenCategoryInput.value = '';
-                        descriptionInput.value = '';
-                        kcalInput.value = ''; 
-                        kcalInput.placeholder = "Kcal (e.g., 350)"; // Reset to default placeholder
-                        const allButtons = categoryContainer.querySelectorAll('button');
-                        allButtons.forEach(btn => {
-                            btn.classList.remove(...categorySelectedClasses);
-                            const img = btn.querySelector('img');
-                            if (img) {
-                                img.classList.remove('scale-125', 'ease-out');
-                                img.classList.add('ease-in'); 
-                            }
-                        });
-
-                        // Restore original button styles and re-enable
+                        messageArea.textContent = ''; 
                         sendBtn.disabled = false;
                         sendBtnContent.classList.remove('hidden');
                         sendBtnLoadingText.classList.add('hidden');
@@ -352,7 +503,6 @@
                 }
             }
 
-            // Function to generate skeleton loader HTML
             function getSkeletonLoaderHtml(count = 3) {
                 let html = '';
                 for (let i = 0; i < count; i++) {
@@ -363,66 +513,63 @@
                 return html;
             }
 
-            // --- Function to update the Kcal progress bar ---
-            let lastPercentage = 0; // To track previous percentage for threshold animation
+            let lastPercentage = 0; 
             function updateKcalProgressBar(currentKcalSum) {
                 const newPercentage = Math.min(100, (currentKcalSum / KCAL_CAP) * 100);
                 
                 kcalProgressFill.style.width = `${newPercentage}%`;
                 
                 let emoji = '';
-                if (currentKcalSum <= KCAL_CAP) {
-                    emoji = '✨ '; // Encouraging emoji when below or at target
-                } else if (currentKcalSum > KCAL_CAP) {
-                    emoji = '⚠️ '; // Warning emoji when over target
-                }
-                kcalProgressText.textContent = `${emoji}${currentKcalSum} Kcal / ${KCAL_CAP} Kcal`;
+                const remaining = KCAL_CAP - currentKcalSum;
 
-                // Update colors based on progress
+                if (currentKcalSum <= KCAL_CAP) {
+                    emoji = '✨ '; 
+                    kcalProgressText.textContent = `${emoji}${currentKcalSum} / ${KCAL_CAP} kcal (${remaining} kcal Remaining)`;
+                } else {
+                    emoji = '⚠️ '; 
+                    kcalProgressText.textContent = `${emoji}${currentKcalSum} / ${KCAL_CAP} kcal (${Math.abs(remaining)} kcal Over)`;
+                }
+
                 if (currentKcalSum > KCAL_CAP) {
                     kcalProgressFill.classList.remove('bg-green-500', 'bg-yellow-500');
-                    kcalProgressFill.classList.add('bg-red-500', 'bg-gradient-to-r', 'from-red-400', 'to-red-600'); // Gradient for red
+                    kcalProgressFill.classList.add('bg-red-500', 'bg-gradient-to-r', 'from-red-400', 'to-red-600');
                     kcalProgressText.classList.remove('text-gray-700', 'text-amber-600');
                     kcalProgressText.classList.add('text-red-600');
-                } else if (newPercentage >= 80) { // Nearing cap, turn yellow
+                } else if (newPercentage >= 80) { 
                     kcalProgressFill.classList.remove('bg-green-500', 'bg-red-500');
-                    kcalProgressFill.classList.add('bg-yellow-500', 'bg-gradient-to-r', 'from-amber-400', 'to-amber-600'); // Gradient for yellow
+                    kcalProgressFill.classList.add('bg-yellow-500', 'bg-gradient-to-r', 'from-amber-400', 'to-amber-600'); 
                     kcalProgressText.classList.remove('text-gray-700', 'text-red-600');
                     kcalProgressText.classList.add('text-amber-600');
                 } else {
                     kcalProgressFill.classList.remove('bg-red-500', 'bg-yellow-500', 'from-red-400', 'to-red-600', 'from-amber-400', 'to-amber-600');
-                    kcalProgressFill.classList.add('bg-green-500', 'bg-gradient-to-r', 'from-green-400', 'to-green-600'); // Gradient for green
+                    kcalProgressFill.classList.add('bg-green-500', 'bg-gradient-to-r', 'from-green-400', 'to-green-600'); 
                     kcalProgressText.classList.remove('text-red-600', 'text-amber-600');
                     kcalProgressText.classList.add('text-gray-700');
                 }
 
-                // Apply bounce/wiggle animation if a threshold is crossed
                 if ((lastPercentage < 50 && newPercentage >= 50) ||
                     (lastPercentage < 80 && newPercentage >= 80) ||
                     (lastPercentage < 100 && newPercentage >= 100) ||
-                    (lastPercentage <= 100 && newPercentage > 100)) { // New: bounce if going over cap
+                    (lastPercentage <= 100 && newPercentage > 100)) { 
                     kcalProgressBarContainer.classList.add('animate-bounce-wiggle');
                     kcalProgressText.classList.add('animate-bounce-wiggle');
                     setTimeout(() => {
                         kcalProgressBarContainer.classList.remove('animate-bounce-wiggle');
                         kcalProgressText.classList.remove('animate-bounce-wiggle');
-                    }, 300); // Animation duration
+                    }, 300); 
                 }
-                lastPercentage = newPercentage; // Update last percentage
+                lastPercentage = newPercentage; 
 
-                // Update ARIA attributes for accessibility
                 kcalProgressBarContainer.setAttribute('aria-valuenow', currentKcalSum);
-                kcalProgressBarContainer.setAttribute('aria-valuetext', `${currentKcalSum} out of ${KCAL_CAP} Kcal consumed today.`);
+                kcalProgressBarContainer.setAttribute('aria-valuetext', `${currentKcalSum} out of ${KCAL_CAP} kcal consumed today.`);
             }
 
 
-            // --- Function to load data from Notion via backend (GET request) ---
             async function loadNotionItems() {
-                // Display skeleton loader effect
-                notionItemsDisplay.innerHTML = getSkeletonLoaderHtml(4); // Show 4 loading lines
-                notionItemsDisplay.classList.add('bg-gray-100'); // Add a base background for the loader container
+                notionItemsDisplay.innerHTML = getSkeletonLoaderHtml(4); 
+                notionItemsDisplay.classList.add('bg-gray-100'); 
 
-                let sumTotalKcal = 0; // Initialize sum for the progress bar
+                let sumTotalKcal = 0; 
 
                 try {
                     const response = await fetch(NOTION_BACKEND_URL, {
@@ -441,12 +588,10 @@
                     const data = await response.json();
                     const items = data.items;
 
-                    // Clear skeleton loader
                     notionItemsDisplay.innerHTML = ''; 
-                    notionItemsDisplay.classList.remove('bg-gray-100'); // Remove base loading background
+                    notionItemsDisplay.classList.remove('bg-gray-100'); 
 
                     if (items.length === 0) {
-                        // Empty state with a more engaging message and icon
                         notionItemsDisplay.innerHTML = `
                             <div class="text-center py-8">
                                 <img src="https://cdn-icons-png.flaticon.com/512/7465/7465225.png" alt="Empty state icon" class="w-24 h-24 mx-auto mb-4 opacity-70">
@@ -456,19 +601,18 @@
                         `;
                     } else {
                         items.forEach(item => {
-                            sumTotalKcal += item.total; // Summing up Kcal for the progress bar
-                            // Exclude "Untitled Page" and "Untitled" from description
+                            sumTotalKcal += item.total; 
                             const descriptionPart = (item.name && item.name !== 'Untitled' && item.name !== 'Untitled Page' && item.name.trim() !== '') ? ` - ${item.name}` : '';
 
                             const itemDiv = document.createElement('div');
-                            // Increased text size for better readability and space filling
-                            itemDiv.className = 'py-2 flex justify-between items-center border-b border-gray-100 last:border-b-0 last:pb-0 text-base md:text-lg'; // Added text-base md:text-lg
+                            itemDiv.className = 'py-2 flex justify-between items-center border-b border-gray-100 last:border-b-0 last:pb-0 text-base md:text-lg'; 
                             itemDiv.innerHTML = `
                                 <div class="flex-1 overflow-hidden text-ellipsis pr-2 font-semibold">
                                     ${item.Type}${descriptionPart}
                                 </div>
-                                <div class="font-bold ${item.total < 0 ? 'text-red-500' : 'text-green-600'}"> 
-                                    ${item.total} Kcal
+                                <div class="font-bold ${item.total < 0 ? 'text-red-500' : 'text-green-600'} flex items-center"> 
+                                    <svg class="w-4 h-4 mr-1 ${item.total < 0 ? 'text-red-500' : 'text-green-600'}" fill="currentColor" viewBox="0 0 24 24"><use xlink:href="#icon-flame"></use></svg>
+                                    ${item.total}
                                 </div>
                             `;
                             notionItemsDisplay.appendChild(itemDiv);
@@ -478,7 +622,7 @@
                     console.error('Failed to load items from Notion:', error);
                     notionItemsDisplay.innerHTML = `<p class="text-center text-red-500">Failed to load items: ${error.message}</p>`;
                 } finally {
-                    updateKcalProgressBar(sumTotalKcal); // Update progress bar after loading items
+                    updateKcalProgressBar(sumTotalKcal); 
                 }
             }
 
@@ -486,21 +630,19 @@
             sendBtn.addEventListener('click', function() {
                 const category = hiddenCategoryInput.value;
                 const description = descriptionInput.value;
-                let kcal = kcalInput.value; // Get Kcal value as is
+                let kcal = kcalInput.value; 
 
-                // Validate inputs
                 if (!category) {
                     messageArea.textContent = 'Please select a category.';
                     messageArea.style.color = '#dc2626';
                     return;
                 }
-                if (!kcal || isNaN(parseFloat(kcal))) { // Use parseFloat for potential negative values
-                    messageArea.textContent = 'Please enter a valid Kcal value.';
+                if (!kcal || isNaN(parseFloat(kcal))) { 
+                    messageArea.textContent = 'Please enter a valid kcal value.';
                     messageArea.style.color = '#dc2626';
                     return;
                 }
 
-                // Ensure Kcal is an integer for Notion
                 kcal = parseInt(kcal, 10);
 
                 sendToNotion({ category, description, kcal });
@@ -510,9 +652,10 @@
             tabTodayBtn.addEventListener('click', () => showTab('today'));
 
             // Initial load
-            // Call loadNotionItems immediately on page load to set initial Kcal sum
             loadNotionItems();
-            showTab('category'); // Start on the "Add" tab
+            showTab('category'); 
+            // Set initial random description placeholder for a default category (e.g., Breakfast)
+            updateDescriptionPlaceholder("Breakfast");
         });
     </script>
 </body>
