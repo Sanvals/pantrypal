@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍛 Pantry-Pal</title>
+    <title>Pantry-Pal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/64/12493/12493626.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
         @keyframes pulse-bg {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
         .animate-pulse-bg {
-          background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
-          background-size: 200% 100%;
-          animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+            background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+            background-size: 200% 100%;
+            animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
         }
 
         /* Specific pulse background for the send button when loading */
@@ -25,6 +26,49 @@
             background: linear-gradient(to right, #d1d5db 0%, #a1a1aa 20%, #d1d5db 40%, #d1d5db 100%); /* Gray shades for the pulse */
             background-size: 200% 100%;
             animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
+
+        /* Keyframes for bounce/wiggle animation */
+        @keyframes bounce-wiggle {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-2px) translateY(-2px); }
+            50% { transform: translateX(2px) translateY(2px); }
+            75% { transform: translateX(-2px) translateY(-2px); }
+        }
+
+        .animate-bounce-wiggle {
+            animation: bounce-wiggle 0.3s ease-in-out;
+        }
+
+        /* Category selection pulse/glow */
+        @keyframes category-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); } /* Indigo-500 equivalent */
+            70% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+
+        .category-selected-glow {
+            animation: category-pulse 1s ease-out;
+        }
+
+        /* Checkmark for selected category */
+        .category-selected-checkmark::after {
+            content: '✓'; /* Unicode checkmark */
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 0.8em;
+            color: white;
+            background-color: #4CAF50; /* Green */
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            line-height: 1; /* Adjust line-height to center the checkmark vertically */
         }
     </style>
 </head>
@@ -54,27 +98,27 @@
         <div id="section-category" class="space-y-2 mt-4">
             <div>
                 <div id="category-container" class="grid grid-cols-3 gap-3 mt-2">
-                    <button class="border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-sky-200 bg-sky-100 text-sky-800 hover:border-sky-400" data-category="Breakfast">
+                    <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-sky-200 bg-sky-100 text-sky-800 hover:border-sky-400" data-category="Breakfast">
                         <img src="https://cdn-icons-png.flaticon.com/512/9702/9702245.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Breakfast</span>
                     </button>
-                    <button class="border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400" data-category="Collagen">
+                    <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400" data-category="Collagen">
                         <img src="https://cdn-icons-png.flaticon.com/512/11210/11210895.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Collagen</span>
                     </button>
-                    <button class="border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-amber-200 bg-amber-100 text-amber-800 hover:border-amber-400" data-category="Coffee">
+                    <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-amber-200 bg-amber-100 text-amber-800 hover:border-amber-400" data-category="Coffee">
                         <img src="https://cdn-icons-png.flaticon.com/512/1448/1448438.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Coffee</span>
                     </button>
-                    <button class="border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-lime-200 bg-lime-100 text-lime-800 hover:border-lime-400" data-category="Lunch">
+                    <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-lime-200 bg-lime-100 text-lime-800 hover:border-lime-400" data-category="Lunch">
                         <img src="https://cdn-icons-png.flaticon.com/512/2515/2515271.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Lunch</span>
                     </button>
-                    <button class="border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-teal-200 bg-teal-100 text-teal-800 hover:border-teal-400" data-category="Exercise">
+                    <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-teal-200 bg-teal-100 text-teal-800 hover:border-teal-400" data-category="Exercise">
                         <img src="https://cdn-icons-png.flaticon.com/512/7681/7681038.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Exercise</span>
                     </button>
-                    <button class="border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400" data-category="Other">
+                    <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400" data-category="Other">
                         <img src="https://cdn-icons-png.flaticon.com/512/7245/7245102.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Other</span>
                     </button>
@@ -84,16 +128,18 @@
 
             <div class="space-y-2">
                 <div>
-                    <input type="text" id="description" name="description" placeholder="Description (e.g., Avocado toast)" class="mt-1.5 p-3 block w-full border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 bg-white/70">
+                    <label for="description" class="sr-only">Description</label>
+                    <input type="text" id="description" name="description" placeholder="Description (e.g., Avocado toast)" class="mt-1.5 p-3 block w-full border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white/70 shadow-sm">
                 </div>
                 <div>
-                    <input type="number" id="kcal" name="kcal" placeholder="Kcal (e.g., 350)" class="mt-1.5 p-3 block w-full border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 bg-white/70">
+                    <label for="kcal" class="sr-only">Kcal</label>
+                    <input type="number" id="kcal" name="kcal" placeholder="Kcal (e.g., 350)" class="mt-1.5 p-3 block w-full border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white/70 shadow-sm">
                 </div>
             </div>
             
             <button id="send-btn" class="w-full flex items-center justify-center p-3 bg-rose-500 text-white text-lg font-bold rounded-xl shadow-md transition-all duration-200 ease-in-out transform scale-100 hover:bg-rose-600 active:bg-rose-700 active:scale-100">
                 <span id="send-btn-content" class="flex items-center justify-center">
-                    Send to Notion
+                    Log My Meal!
                     <svg class="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </span>
                 <span id="send-btn-loading-text" class="hidden">Processing...</span>
@@ -104,8 +150,8 @@
         </div>
 
         <div id="section-today" class="space-y-2 mt-4 hidden">
-            <div id="notion-items-display" class="bg-gray-50 p-4 rounded-lg shadow-inner max-h-80 overflow-y-auto space-y-2 text-lg text-gray-700 mt-2"> <p class="text-center text-gray-400">No items loaded yet.</p>
-            </div>
+            <div id="notion-items-display" class="bg-gray-50 p-4 rounded-lg shadow-inner max-h-80 overflow-y-auto space-y-2 text-lg text-gray-700 mt-2">
+                </div>
         </div>
 
     </div>
@@ -138,15 +184,16 @@
             const sectionToday = document.getElementById('section-today');
 
             // --- NOTION API ENDPOINT CONFIGURATION ---
-            const NOTION_BACKEND_URL = 'https://pantrypal-gilt.vercel.app/api/pantryapi';
-            // const NOTION_BACKEND_URL = '/api/pantryapi'; // Local deployment
+            // const NOTION_BACKEND_URL = 'https://pantrypal-gilt.vercel.app/api/pantryapi';
+            const NOTION_BACKEND_URL = '/api/pantryapi'; // Local deployment
 
             // Define placeholder values for each category
             const kcalPlaceholders = {
                 "Coffee": "50",
                 "Breakfast": "311",
                 "Lunch": "800",
-                "Collagen": "40"
+                "Collagen": "40",
+                "Exercise": "300" // Added for consistency
             };
 
             // --- Tab Switching Logic ---
@@ -176,13 +223,12 @@
                 } else if (tabName === 'today') {
                     setTabActiveState(tabTodayBtn, true);
                     sectionToday.classList.remove('hidden');
+                    loadNotionItems(); // Always load/reload items when switching tabs
                 }
-                loadNotionItems(); // Always load/reload items when switching tabs
             }
 
             // --- Logic for Category Selection ---
-            const categorySelectedClasses = ['border-indigo-500', 'bg-indigo-300', 'text-indigo-900', 'scale-105', 'shadow-lg'];
-            const categorySelectedImgClasses = ['scale-125', 'transition-transform', 'duration-600', 'ease-out'];
+            const categorySelectedClasses = ['border-indigo-500', 'bg-indigo-300', 'text-indigo-900', 'scale-105', 'shadow-lg', 'category-selected-glow', 'category-selected-checkmark'];
             const categoryDefaultImgClasses = ['transition-transform', 'duration-600', 'ease-in'];
 
             categoryContainer.addEventListener('click', function(e) {
@@ -192,6 +238,8 @@
                 const allButtons = categoryContainer.querySelectorAll('button');
                 allButtons.forEach(btn => {
                     btn.classList.remove(...categorySelectedClasses);
+                    // Remove checkmark via class removal
+                    btn.classList.remove('category-selected-checkmark');
                     const img = btn.querySelector('img');
                     if (img) {
                         img.classList.remove('scale-125', 'ease-out');
@@ -315,36 +363,51 @@
             }
 
             // --- Function to update the Kcal progress bar ---
+            let lastPercentage = 0; // To track previous percentage for threshold animation
             function updateKcalProgressBar(currentKcalSum) {
-                const percentage = Math.min(100, (currentKcalSum / KCAL_CAP) * 100);
+                const newPercentage = Math.min(100, (currentKcalSum / KCAL_CAP) * 100);
                 
-                kcalProgressFill.style.width = `${percentage}%`;
+                kcalProgressFill.style.width = `${newPercentage}%`;
                 
                 let emoji = '';
                 if (currentKcalSum <= KCAL_CAP) {
                     emoji = '✨ '; // Encouraging emoji when below or at target
-                } else {
-                    emoji = ''; // No emoji when over target
+                } else if (currentKcalSum > KCAL_CAP) {
+                    emoji = '⚠️ '; // Warning emoji when over target
                 }
                 kcalProgressText.textContent = `${emoji}${currentKcalSum} Kcal / ${KCAL_CAP} Kcal`;
 
                 // Update colors based on progress
                 if (currentKcalSum > KCAL_CAP) {
                     kcalProgressFill.classList.remove('bg-green-500', 'bg-yellow-500');
-                    kcalProgressFill.classList.add('bg-red-500'); // Over cap, turn red
+                    kcalProgressFill.classList.add('bg-red-500', 'bg-gradient-to-r', 'from-red-400', 'to-red-600'); // Gradient for red
                     kcalProgressText.classList.remove('text-gray-700', 'text-amber-600');
                     kcalProgressText.classList.add('text-red-600');
-                } else if (percentage >= 80) { // Nearing cap, turn yellow
+                } else if (newPercentage >= 80) { // Nearing cap, turn yellow
                     kcalProgressFill.classList.remove('bg-green-500', 'bg-red-500');
-                    kcalProgressFill.classList.add('bg-yellow-500');
+                    kcalProgressFill.classList.add('bg-yellow-500', 'bg-gradient-to-r', 'from-amber-400', 'to-amber-600'); // Gradient for yellow
                     kcalProgressText.classList.remove('text-gray-700', 'text-red-600');
                     kcalProgressText.classList.add('text-amber-600');
                 } else {
-                    kcalProgressFill.classList.remove('bg-red-500', 'bg-yellow-500');
-                    kcalProgressFill.classList.add('bg-green-500'); // Normal range, turn green
+                    kcalProgressFill.classList.remove('bg-red-500', 'bg-yellow-500', 'from-red-400', 'to-red-600', 'from-amber-400', 'to-amber-600');
+                    kcalProgressFill.classList.add('bg-green-500', 'bg-gradient-to-r', 'from-green-400', 'to-green-600'); // Gradient for green
                     kcalProgressText.classList.remove('text-red-600', 'text-amber-600');
                     kcalProgressText.classList.add('text-gray-700');
                 }
+
+                // Apply bounce/wiggle animation if a threshold is crossed
+                if ((lastPercentage < 50 && newPercentage >= 50) ||
+                    (lastPercentage < 80 && newPercentage >= 80) ||
+                    (lastPercentage < 100 && newPercentage >= 100) ||
+                    (lastPercentage <= 100 && newPercentage > 100)) { // New: bounce if going over cap
+                    kcalProgressBarContainer.classList.add('animate-bounce-wiggle');
+                    kcalProgressText.classList.add('animate-bounce-wiggle');
+                    setTimeout(() => {
+                        kcalProgressBarContainer.classList.remove('animate-bounce-wiggle');
+                        kcalProgressText.classList.remove('animate-bounce-wiggle');
+                    }, 300); // Animation duration
+                }
+                lastPercentage = newPercentage; // Update last percentage
 
                 // Update ARIA attributes for accessibility
                 kcalProgressBarContainer.setAttribute('aria-valuenow', currentKcalSum);
@@ -382,18 +445,29 @@
                     notionItemsDisplay.classList.remove('bg-gray-100'); // Remove base loading background
 
                     if (items.length === 0) {
-                        notionItemsDisplay.innerHTML = '<p class="text-center text-gray-400">No items found for today\'s view.</p>';
+                        // Empty state with a more engaging message and icon
+                        notionItemsDisplay.innerHTML = `
+                            <div class="text-center py-8">
+                                <img src="https://cdn-icons-png.flaticon.com/512/7465/7465225.png" alt="Empty state icon" class="w-24 h-24 mx-auto mb-4 opacity-70">
+                                <p class="text-gray-500 font-semibold text-lg">Nothing logged for today yet!</p>
+                                <p class="text-gray-400 text-sm mt-1">Start by adding your first meal on the 'Add' tab.</p>
+                            </div>
+                        `;
                     } else {
+                        // **REVERTED: Removed grouping and sorting by category**
                         items.forEach(item => {
                             sumTotalKcal += item.total; // Summing up Kcal for the progress bar
                             // Exclude "Untitled Page" and "Untitled" from description
-                            const descriptionPart = (item.name && item.name !== 'Untitled' && item.name !== 'Untitled Page' && item.name !== ' ') ? ` - ${item.name}` : '';
+                            const descriptionPart = (item.name && item.name !== 'Untitled' && item.name !== 'Untitled Page' && item.name.trim() !== '') ? ` - ${item.name}` : '';
+
+                            // **REVERTED: Removed timestamp display**
+                            // const timeString = ''; // No timestamp
 
                             const itemDiv = document.createElement('div');
                             // Increased text size for better readability and space filling
                             itemDiv.className = 'py-2 flex justify-between items-center border-b border-gray-100 last:border-b-0 last:pb-0 text-base md:text-lg'; // Added text-base md:text-lg
                             itemDiv.innerHTML = `
-                                <div class="flex-1 overflow-hidden whitespace-nowrap text-ellipsis pr-2 font-semibold">
+                                <div class="flex-1 overflow-hidden text-ellipsis pr-2 font-semibold">
                                     ${item.Type}${descriptionPart}
                                 </div>
                                 <div class="font-bold ${item.total < 0 ? 'text-red-500' : 'text-green-600'}"> 
@@ -439,6 +513,8 @@
             tabTodayBtn.addEventListener('click', () => showTab('today'));
 
             // Initial load
+            // Call loadNotionItems immediately on page load to set initial Kcal sum
+            loadNotionItems();
             showTab('category'); // Start on the "Add" tab
         });
     </script>
