@@ -45,6 +45,12 @@
             <button id="tab-today" class="flex-1 py-2 px-3 text-center text-base font-bold rounded-t-xl cursor-pointer transition-colors duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300">Today</button>
         </div>
 
+        <div class="pt-4 mt-4 border-t border-gray-200">
+            <div id="kcal-progress-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1500" class="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden">
+                <div id="kcal-progress-fill" class="h-full bg-green-500 transition-all duration-500 ease-in-out" style="width: 0%;"></div>
+            </div>
+            <p id="kcal-progress-text" class="text-sm font-semibold text-gray-700 text-center mt-2">0 Kcal / 1500 Kcal</p>
+        </div>
         <div id="section-category" class="space-y-2 mt-4">
             <div>
                 <div id="category-container" class="grid grid-cols-3 gap-3 mt-2">
@@ -95,17 +101,10 @@
             
             <div id="message-area" class="text-center font-medium"></div>
 
-            <div class="pt-4 mt-4 border-t border-gray-200">
-                <div id="kcal-progress-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1500" class="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden">
-                    <div id="kcal-progress-fill" class="h-full bg-green-500 transition-all duration-500 ease-in-out" style="width: 0%;"></div>
-                </div>
-                <p id="kcal-progress-text" class="text-sm font-semibold text-gray-700 text-center mt-2">0 Kcal / 1500 Kcal</p>
-            </div>
         </div>
 
         <div id="section-today" class="space-y-2 mt-4 hidden">
-            <div id="notion-items-display" class="bg-gray-50 p-4 rounded-lg shadow-inner max-h-80 overflow-y-auto space-y-2 text-sm text-gray-700 mt-2">
-                <p class="text-center text-gray-400">No items loaded yet.</p>
+            <div id="notion-items-display" class="bg-gray-50 p-4 rounded-lg shadow-inner max-h-80 overflow-y-auto space-y-2 text-lg text-gray-700 mt-2"> <p class="text-center text-gray-400">No items loaded yet.</p>
             </div>
         </div>
 
@@ -139,7 +138,8 @@
             const sectionToday = document.getElementById('section-today');
 
             // --- NOTION API ENDPOINT CONFIGURATION ---
-            const NOTION_BACKEND_URL = 'https://pantrypal-gilt.vercel.app/api/pantryapi'; 
+            const NOTION_BACKEND_URL = 'https://pantrypal-gilt.vercel.app/api/pantryapi';
+            // const NOTION_BACKEND_URL = '/api/pantryapi'; // Local deployment
 
             // Define placeholder values for each category
             const kcalPlaceholders = {
@@ -177,7 +177,7 @@
                     setTabActiveState(tabTodayBtn, true);
                     sectionToday.classList.remove('hidden');
                 }
-                loadNotionItems(); // Always load/reload items when switching tabs, as data for both views comes from here
+                loadNotionItems(); // Always load/reload items when switching tabs
             }
 
             // --- Logic for Category Selection ---
@@ -206,13 +206,39 @@
                     clickedImg.classList.remove('ease-in');
                 }
                 
-                hiddenCategoryInput.value = clickedButton.dataset.category;
+                const selectedCategory = clickedButton.dataset.category; // Get selected category directly
+                hiddenCategoryInput.value = selectedCategory; // Set hidden input value
 
-                const selectedCategory = hiddenCategoryInput.value;
+                // Update placeholder and potentially Kcal input for 'Exercise'
                 if (kcalPlaceholders[selectedCategory]) {
-                    kcalInput.placeholder = `Kcal (e.g., ${kcalPlaceholders[selectedCategory]})`; // Update placeholder dynamically
+                    kcalInput.placeholder = `Kcal (e.g., ${kcalPlaceholders[selectedCategory]})`;
+                    // Automatically set Kcal if a placeholder exists and it's positive for Exercise
+                    if (selectedCategory === "Exercise" && kcalInput.value === "") {
+                        kcalInput.value = -Math.abs(parseInt(kcalPlaceholders[selectedCategory] || 0));
+                    }
                 } else {
                     kcalInput.placeholder = "Kcal (e.g., 350)"; // Default placeholder
+                }
+
+                // If 'Exercise' is selected, ensure Kcal is negative
+                if (selectedCategory === "Exercise") {
+                    if (kcalInput.value !== "") {
+                        kcalInput.value = -Math.abs(parseInt(kcalInput.value || 0));
+                    }
+                    kcalInput.focus(); // Focus on Kcal input to encourage entry
+                } else if (parseInt(kcalInput.value) < 0) {
+                    // If not Exercise and Kcal is negative, make it positive
+                    kcalInput.value = Math.abs(parseInt(kcalInput.value));
+                }
+            });
+
+            // Listen for changes in the Kcal input to ensure 'Exercise' values stay negative
+            kcalInput.addEventListener('input', function() {
+                const selectedCategory = hiddenCategoryInput.value;
+                if (selectedCategory === "Exercise" && parseInt(this.value) > 0) {
+                    this.value = -Math.abs(parseInt(this.value));
+                } else if (selectedCategory !== "Exercise" && parseInt(this.value) < 0) {
+                    this.value = Math.abs(parseInt(this.value));
                 }
             });
 
@@ -244,8 +270,6 @@
 
                     const result = await response.json();
                     console.log('Successfully sent to Notion via backend:', result);
-                    // messageArea.textContent = 'Sent to Notion! ✨';
-                    // messageArea.style.color = '#16a34a'; // Green for success
                     loadNotionItems(); // Refresh data after sending
                 } catch (error) {
                     console.error('Failed to send to Notion:', error);
@@ -366,13 +390,14 @@
                             const descriptionPart = (item.name && item.name !== 'Untitled' && item.name !== 'Untitled Page' && item.name !== ' ') ? ` - ${item.name}` : '';
 
                             const itemDiv = document.createElement('div');
-                            itemDiv.className = 'py-2 flex justify-between items-center border-b border-gray-100 last:border-b-0 last:pb-0';
+                            // Increased text size for better readability and space filling
+                            itemDiv.className = 'py-2 flex justify-between items-center border-b border-gray-100 last:border-b-0 last:pb-0 text-base md:text-lg'; // Added text-base md:text-lg
                             itemDiv.innerHTML = `
-                                <div class="flex-1 overflow-hidden whitespace-nowrap text-ellipsis pr-2">
-                                    <p class="font-semibold text-gray-600 text-sm">${item.Type}${descriptionPart}</p>
+                                <div class="flex-1 overflow-hidden whitespace-nowrap text-ellipsis pr-2 font-semibold">
+                                    ${item.Type}${descriptionPart}
                                 </div>
-                                <div class="font-bold text-gray-600 flex-shrink-0 text-sm">
-                                    <p>${item.total} Kcal</p>
+                                <div class="font-bold ${item.total < 0 ? 'text-red-500' : 'text-green-600'}"> 
+                                    ${item.total} Kcal
                                 </div>
                             `;
                             notionItemsDisplay.appendChild(itemDiv);
@@ -380,51 +405,42 @@
                     }
                 } catch (error) {
                     console.error('Failed to load items from Notion:', error);
-                    // Clear skeleton and show error message
-                    notionItemsDisplay.innerHTML = `<p class="text-center text-red-600">Failed to load items: ${error.message || 'Check console.'}</p>`;
-                    notionItemsDisplay.classList.remove('bg-gray-100'); // Ensure background is removed
-                    sumTotalKcal = 0; // Reset sum on error
+                    notionItemsDisplay.innerHTML = `<p class="text-center text-red-500">Failed to load items: ${error.message}</p>`;
                 } finally {
-                    // Always update the progress bar, even on error or empty data
-                    updateKcalProgressBar(sumTotalKcal);
+                    updateKcalProgressBar(sumTotalKcal); // Update progress bar after loading items
                 }
             }
 
-
             // --- Event Listeners ---
-            sendBtn.addEventListener('click', async function() {
+            sendBtn.addEventListener('click', function() {
                 const category = hiddenCategoryInput.value;
                 const description = descriptionInput.value;
-                const kcal = kcalInput.value; 
+                let kcal = kcalInput.value; // Get Kcal value as is
 
+                // Validate inputs
                 if (!category) {
-                    messageArea.textContent = 'Please select a category!';
+                    messageArea.textContent = 'Please select a category.';
                     messageArea.style.color = '#dc2626';
                     return;
                 }
-                if (!kcal || isNaN(parseInt(kcal, 10))) {
-                    messageArea.textContent = 'Please enter a valid kcal amount!';
+                if (!kcal || isNaN(parseFloat(kcal))) { // Use parseFloat for potential negative values
+                    messageArea.textContent = 'Please enter a valid Kcal value.';
                     messageArea.style.color = '#dc2626';
                     return;
                 }
 
-                const dataToSend = {
-                    category: category,
-                    description: description || '',
-                    kcal: parseInt(kcal, 10)
-                };
-                
-                await sendToNotion(dataToSend);
+                // Ensure Kcal is an integer for Notion
+                kcal = parseInt(kcal, 10);
+
+                sendToNotion({ category, description, kcal });
             });
 
-            // Tab Button Event Listeners
             tabCategoryBtn.addEventListener('click', () => showTab('category'));
             tabTodayBtn.addEventListener('click', () => showTab('today'));
 
-            // Initial tab selection and data load
-            showTab('category'); // This will set the initial tab and trigger loadNotionItems
+            // Initial load
+            showTab('category'); // Start on the "Add" tab
         });
     </script>
-
 </body>
 </html>
