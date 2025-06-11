@@ -1,11 +1,6 @@
 import { Client } from '@notionhq/client';
 
 export default async function handler(req, res) {
-    // --- CORS Headers Configuration (Add this section) ---
-    // IMPORTANT: Replace 'https://YOUR_GITHUB_USERNAME.github.io' with your actual GitHub Pages domain.
-    // For example: 'https://your-username.github.io' or 'https://your-username.github.io/your-repo-name'
-    // If you need to allow multiple origins, you'd check the 'Origin' header and set it dynamically,
-    // or for simpler cases, use '*' during development (but be cautious in production).
     const allowedOrigin = 'https://sanvals.github.io/';
     
     // Set headers for all responses
