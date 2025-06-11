@@ -1,143 +1,194 @@
 import { Client } from '@notionhq/client';
 
-// This function will handle both POST (create page) and GET (query database) requests
 export default async function handler(req, res) {
-    // Environment variables are crucial for security!
     const notion = new Client({ auth: process.env.NOTION_API_KEY });
-    const databaseId = process.env.NOTION_DATABASE_ID;
+    const databaseId = process.env.NOTION_DATABASE_ID; // Your main Pantry database ID
 
-    // --- Input Validation: Check for API Key and Database ID ---
-    if (!notion.auth || !databaseId) {
-        console.error('SERVER ERROR: Notion API key or Database ID not configured.');
-        return res.status(500).json({ error: 'Server configuration error: Notion API key or Database ID missing.' });
+    const sumDatabaseId = process.env.NOTION_SUM_DATABASE_ID;
+    const monthlyDatabaseId = process.env.NOTION_MONTHLY_DATABASE_ID;
+
+    if (!process.env.NOTION_API_KEY || !databaseId || !sumDatabaseId || !monthlyDatabaseId) {
+        console.error('SERVER ERROR: One or more Notion API keys/Database IDs not configured.');
+        return res.status(500).json({ error: 'Server configuration error: Notion API key or required Database IDs missing.' });
     }
 
-    // --- Helper function to get today's date in YYYY-MM-DD format ---
     const getTodayFormattedDate = () => {
         const today = new Date();
         const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+        const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
 
-    // --- Handle POST request (Create Notion Page) ---
-    if (req.method === 'POST') {
+    // --- UPDATED Mapping for Notion 'Type' property tags with emojis ---
+    const notionCategoryMap = {
+        "Breakfast": "🥣 Breakfast",
+        "Collagen": "🦵Collagen",
+        "Coffee": "☕ Coffee",
+        "Lunch": "🍽️ Lunch",
+        "Exercise": "🧘 Exercise",
+        "Other": "✨ Other"
+    };
+
+    async function findPageByTitle(dbId, title) {
         try {
-            const { category, description, kcal } = req.body;
-
-            // Basic input validation for POST request body
-            if (!category || !description || kcal === undefined) {
-                return res.status(400).json({ error: 'Missing required fields for creating a Notion page (category, description, or kcal).' });
-            }
-            if (isNaN(parseInt(kcal, 10))) {
-                 return res.status(400).json({ error: 'Kcal must be a valid number.' });
-            }
-
-            const formattedDate = getTodayFormattedDate();
-
-            await notion.pages.create({
-                parent: { database_id: databaseId },
-                properties: {
-                    // Assuming 'Name' is your database's Title property
-                    'Name': {
-                        title: [{ text: { content: description || 'No description provided' } }]
-                    },
-                    // Assuming 'Category' is a Select property
-                    'Category': {
-                        select: { name: category }
-                    },
-                    // Assuming 'Kcal' is a Number property
-                    'Kcal': {
-                        number: parseInt(kcal, 10)
-                    },
-                    // Assuming 'Date' is a Date property
-                    'Date': {
-                        date: { start: formattedDate }
+            const response = await notion.databases.query({
+                database_id: dbId,
+                filter: {
+                    property: 'title',
+                    title: {
+                        equals: title
                     }
                 }
             });
 
-            return res.status(200).json({ message: 'Successfully sent to Notion!' });
-
+            if (response.results.length > 0) {
+                if (response.results.length > 1) {
+                    console.warn(`[RELATION] Multiple pages found with title "${title}" in database ${dbId}. Using the first one found.`);
+                }
+                return response.results[0].id;
+            } else {
+                console.warn(`[RELATION] Page with title "${title}" not found in database ${dbId}.`);
+                return null;
+            }
         } catch (error) {
-            console.error('Notion API POST error:', error.message);
-            // Provide more specific error messages for Notion API issues
-            const errorMessage = error.body ? JSON.parse(error.body).message : error.message;
-            return res.status(500).json({ error: 'Failed to create Notion page.', details: errorMessage });
+            console.error(`[RELATION] Error finding page with title "${title}" in database ${dbId}:`, error.message);
+            throw new Error(`Failed to find required Notion page for relation: ${title}`);
         }
-    } 
-    // --- Handle GET request (Query Notion Database with Filters & Sorts) ---
-    else if (req.method === 'GET') {
+    }
+
+    if (req.method === 'GET') {
         try {
             const todayFormatted = getTodayFormattedDate();
+            console.log(`[GET] Attempting to retrieve Notion pages for date: ${todayFormatted}`);
 
             const response = await notion.databases.query({
                 database_id: databaseId,
-                // --- CUSTOMIZE YOUR FILTERS HERE TO MATCH YOUR NOTION VIEW ---
                 filter: {
-                    // This combines multiple conditions with 'and'
-                    and: [
-                        {
-                            property: 'Date', // Ensure this matches your Notion 'Date' property name exactly
-                            date: {
-                                equals: todayFormatted // Filters for entries where the Date is today
-                            }
-                        },
-                        {
-                            property: 'Category', // Ensure this matches your Notion 'Category' property name exactly
-                            select: {
-                                does_not_equal: 'Exercise' // Example: Excludes entries categorized as 'Exercise'
-                            }
-                        }
-                        // Add more filters as needed based on your specific Notion view
-                        // Example:
-                        // {
-                        //     property: 'Status', // Assuming a 'Status' property
-                        //     status: { equals: 'Completed' } // Filters for a specific status
-                        // },
-                        // {
-                        //     property: 'Amount', // Assuming a 'Number' property
-                        //     number: { greater_than: 50 } // Filters for numbers greater than 50
-                        // }
-                    ]
+                    property: 'Date',
+                    date: {
+                        equals: todayFormatted
+                    }
                 },
-                // --- CUSTOMIZE YOUR SORTS HERE TO MATCH YOUR NOTION VIEW ---
                 sorts: [
                     {
-                        property: 'Date', // Ensure this matches your Notion 'Date' property name exactly
-                        direction: 'descending' // Sorts by date, newest first
-                    },
-                    {
-                        property: 'Name', // Example: Then sort by Name alphabetically
-                        direction: 'ascending' 
+                        property: 'Date',
+                        direction: 'descending'
                     }
-                    // Add more sorts as needed based on your specific Notion view
                 ]
             });
 
-            // Extract relevant data for the frontend
             const items = response.results.map(page => {
                 const properties = page.properties;
                 return {
                     id: page.id,
-                    name: properties.Name?.title[0]?.plain_text || 'Untitled', // Handle cases where title might be empty
-                    category: properties.Category?.select?.name || 'N/A',
-                    kcal: properties.Kcal?.number || 0,
+                    name: properties.Activity?.title[0]?.plain_text || 'Untitled Page',
+                    Type: properties.Type?.select?.name || 'N/A',
+                    total: properties.Total?.formula?.number || 0, // Fetches the result of the 'Total' formula
                     date: properties.Date?.date?.start || 'N/A'
                 };
             });
 
+            console.log(`[GET] Successfully retrieved ${items.length} items for today.`);
             return res.status(200).json({ items });
 
         } catch (error) {
-            console.error('Notion API GET error:', error.message);
+            console.error('[GET] Notion API error:', error.message);
             const errorMessage = error.body ? JSON.parse(error.body).message : error.message;
             return res.status(500).json({ error: 'Failed to retrieve Notion items.', details: errorMessage });
         }
-    } 
-    // --- Handle unsupported methods ---
+    }
+    else if (req.method === 'POST') {
+        try {
+            let { category, description, kcal } = req.body;
+
+            // Ensure description is always a string and trimmed.
+            description = typeof description === 'string' ? description.trim() : '';
+            
+            // --- MODIFIED: Use a single space if description is empty ---
+            // The Notion API requires the title property to NOT be empty.
+            // Using a single space makes it appear blank in Notion's UI.
+            const contentForNotionTitle = description === '' ? ' ' : description;
+            // --- END MODIFIED ---
+
+            if (!category || !kcal) {
+                console.warn('[POST] Missing required fields: category or kcal.');
+                return res.status(400).json({ error: 'Category and Kcal are required.' });
+            }
+            if (isNaN(parseInt(kcal, 10))) {
+                console.warn('[POST] Invalid Kcal value:', kcal);
+                return res.status(400).json({ error: 'Kcal must be a valid number.' });
+            }
+
+            const todayFormatted = getTodayFormattedDate();
+
+            const notionTag = notionCategoryMap[category];
+            if (!notionTag) {
+                console.warn(`[POST] No Notion tag mapping found for category: ${category}`);
+                return res.status(400).json({ error: `Invalid category selected: ${category}. No matching Notion tag found.` });
+            }
+
+            const sumPageId = await findPageByTitle(sumDatabaseId, "1500");
+            const monthlyPageId = await findPageByTitle(monthlyDatabaseId, "1800");
+
+            if (!sumPageId) {
+                return res.status(500).json({ error: "Required 'Sum' relation page (1500) not found in its database. Please ensure it exists." });
+            }
+            if (!monthlyPageId) {
+                return res.status(500).json({ error: "Required 'Monthly' relation page (1800) not found in its database. Please ensure it exists." });
+            }
+
+            console.log(`[POST] Adding new Notion page: Activity=${contentForNotionTitle}, Type=${notionTag}, Cal=${kcal}`);
+
+            const newPageProperties = {
+                "Activity": {
+                    title: [
+                        {
+                            text: { content: contentForNotionTitle } // Use the guaranteed string content (empty space if blank)
+                        }
+                    ]
+                },
+                "Type": {
+                    select: { name: notionTag }
+                },
+                "Cal": { // Where the user's direct Kcal input goes
+                    number: parseInt(kcal, 10)
+                },
+                "Date": {
+                    date: { start: todayFormatted }
+                },
+                "Sum": {
+                    relation: [{ id: sumPageId }]
+                },
+                "Monthly": {
+                    relation: [{ id: monthlyPageId }]
+                }
+            };
+
+            const response = await notion.pages.create({
+                parent: { database_id: databaseId },
+                properties: newPageProperties
+            });
+
+            console.log('[POST] Successfully added page to Notion:', response.id);
+            return res.status(200).json({ message: 'Entry added successfully to Notion!', pageId: response.id });
+
+        } catch (error) {
+            console.error('[POST] Notion API error:', error.message);
+            const errorMessage = error.body ? JSON.parse(error.body).message : error.message;
+            if (error.code === 'validation_error' && error.body) {
+                try {
+                    const errorDetails = JSON.parse(error.body);
+                    return res.status(400).json({ error: 'Notion validation error.', details: errorDetails.message });
+                } catch (parseError) {
+                    return res.status(400).json({ error: 'Failed to add entry to Notion.', details: errorMessage });
+                }
+            }
+            return res.status(500).json({ error: 'Failed to add entry to Notion.', details: errorMessage });
+        }
+    }
     else {
-        return res.status(405).json({ message: 'Method Not Allowed' });
+        console.log(`[${req.method}] Method not allowed for this endpoint.`);
+        return res.status(405).json({ message: 'Method Not Allowed', allowed: ['GET', 'POST'] });
     }
 }
