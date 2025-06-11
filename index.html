@@ -19,6 +19,13 @@
           background-size: 200% 100%;
           animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
         }
+
+        /* Specific pulse background for the send button when loading */
+        .send-button-pulse {
+            background: linear-gradient(to right, #d1d5db 0%, #a1a1aa 20%, #d1d5db 40%, #d1d5db 100%); /* Gray shades for the pulse */
+            background-size: 200% 100%;
+            animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
     </style>
 </head>
 <body class="font-['Outfit'] bg-gradient-to-br from-purple-100 via-rose-100 to-amber-100 flex items-center justify-center min-h-screen p-4">
@@ -79,8 +86,11 @@
             </div>
             
             <button id="send-btn" class="w-full flex items-center justify-center p-3 bg-rose-500 text-white text-lg font-bold rounded-xl shadow-md transition-all duration-200 ease-in-out transform scale-100 hover:bg-rose-600 active:bg-rose-700 active:scale-100">
-                Send to Notion
-                <svg class="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span id="send-btn-content" class="flex items-center justify-center">
+                    Send to Notion
+                    <svg class="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </span>
+                <span id="send-btn-loading-text" class="hidden">Processing...</span>
             </button>
             
             <div id="message-area" class="text-center font-medium"></div>
@@ -94,7 +104,7 @@
         </div>
 
         <div id="section-today" class="space-y-2 mt-4 hidden">
-            <div id="notion-items-display" class="bg-gray-50 p-4 rounded-lg shadow-inner max-h-40 overflow-y-auto space-y-2 text-sm text-gray-700 mt-2">
+            <div id="notion-items-display" class="bg-gray-50 p-4 rounded-lg shadow-inner max-h-80 overflow-y-auto space-y-2 text-sm text-gray-700 mt-2">
                 <p class="text-center text-gray-400">No items loaded yet.</p>
             </div>
         </div>
@@ -109,6 +119,10 @@
             const kcalInput = document.getElementById('kcal'); 
             const sendBtn = document.getElementById('send-btn');
             const messageArea = document.getElementById('message-area');
+
+            // Elements for button loading state
+            const sendBtnContent = document.getElementById('send-btn-content');
+            const sendBtnLoadingText = document.getElementById('send-btn-loading-text');
 
             const notionItemsDisplay = document.getElementById('notion-items-display');
 
@@ -125,7 +139,7 @@
             const sectionToday = document.getElementById('section-today');
 
             // --- NOTION API ENDPOINT CONFIGURATION ---
-            const NOTION_BACKEND_URL = '/api/pantryapi'; 
+            const NOTION_BACKEND_URL = 'https://pantrypal-gilt.vercel.app/api/pantryapi'; 
 
             // Define placeholder values for each category
             const kcalPlaceholders = {
@@ -204,8 +218,14 @@
 
             // --- Function to send data to Notion via backend (POST request) ---
             async function sendToNotion(data) {
-                messageArea.textContent = 'Sending to Notion...';
-                messageArea.style.color = '#4f46e5';
+                messageArea.textContent = ''; // Clear message area
+                sendBtn.disabled = true; // Disable button
+                sendBtnContent.classList.add('hidden'); // Hide original content
+                sendBtnLoadingText.classList.remove('hidden'); // Show loading text
+
+                // Apply gray background, pulse animation, and disable cursor
+                sendBtn.classList.remove('bg-rose-500', 'text-white', 'hover:bg-rose-600', 'active:bg-rose-700', 'shadow-md');
+                sendBtn.classList.add('bg-gray-400', 'text-gray-600', 'send-button-pulse', 'cursor-not-allowed');
 
                 try {
                     const response = await fetch(NOTION_BACKEND_URL, {
@@ -224,16 +244,17 @@
 
                     const result = await response.json();
                     console.log('Successfully sent to Notion via backend:', result);
-                    messageArea.textContent = 'Sent to Notion! ✨';
-                    messageArea.style.color = '#16a34a';
+                    // messageArea.textContent = 'Sent to Notion! ✨';
+                    // messageArea.style.color = '#16a34a'; // Green for success
                     loadNotionItems(); // Refresh data after sending
                 } catch (error) {
                     console.error('Failed to send to Notion:', error);
                     messageArea.textContent = `Error: ${error.message || 'Network error'}`;
-                    messageArea.style.color = '#dc2626';
+                    messageArea.style.color = '#dc2626'; // Red for error
                 } finally {
+                    // Restore button state after a short delay for user feedback
                     setTimeout(() => {
-                        messageArea.textContent = '';
+                        messageArea.textContent = ''; // Clear message after delay
                         hiddenCategoryInput.value = '';
                         descriptionInput.value = '';
                         kcalInput.value = ''; 
@@ -247,6 +268,13 @@
                                 img.classList.add('ease-in'); 
                             }
                         });
+
+                        // Restore original button styles and re-enable
+                        sendBtn.disabled = false;
+                        sendBtnContent.classList.remove('hidden');
+                        sendBtnLoadingText.classList.add('hidden');
+                        sendBtn.classList.remove('bg-gray-400', 'text-gray-600', 'send-button-pulse', 'cursor-not-allowed');
+                        sendBtn.classList.add('bg-rose-500', 'text-white', 'hover:bg-rose-600', 'active:bg-rose-700', 'shadow-md');
                     }, 2000);
                 }
             }

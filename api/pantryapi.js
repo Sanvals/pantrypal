@@ -1,6 +1,27 @@
 import { Client } from '@notionhq/client';
 
 export default async function handler(req, res) {
+    // --- CORS Headers Configuration (Add this section) ---
+    // IMPORTANT: Replace 'https://YOUR_GITHUB_USERNAME.github.io' with your actual GitHub Pages domain.
+    // For example: 'https://your-username.github.io' or 'https://your-username.github.io/your-repo-name'
+    // If you need to allow multiple origins, you'd check the 'Origin' header and set it dynamically,
+    // or for simpler cases, use '*' during development (but be cautious in production).
+    const allowedOrigin = 'https://sanvals.github.io/';
+    
+    // Set headers for all responses
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Allow GET, POST, and OPTIONS
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow Content-Type and Authorization headers
+    res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight response for 24 hours
+
+    // Handle preflight OPTIONS request
+    // Browsers send an OPTIONS request before actual POST/GET requests for CORS validation
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end(); // Respond with 200 OK and no body for preflight
+    }
+    // --- End CORS Headers Configuration ---
+
+
     const notion = new Client({ auth: process.env.NOTION_API_KEY });
     const databaseId = process.env.NOTION_DATABASE_ID; // Your main Pantry database ID
 
