@@ -134,28 +134,29 @@
             <div>
                 <div id="category-container" class="grid grid-cols-3 gap-3 mt-2">
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-sky-200 bg-sky-100 text-sky-800 hover:border-sky-400" data-category="Breakfast">
-                        <img src="https://cdn-icons-png.flaticon.com/512/9702/9702245.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/9702/9702245.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Breakfast</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400" data-category="Collagen">
-                        <img src="https://cdn-icons-png.flaticon.com/512/11210/11210895.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/11210/11210895.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Collagen</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-amber-200 bg-amber-100 text-amber-800 hover:border-amber-400" data-category="Coffee">
-                        <img src="https://cdn-icons-png.flaticon.com/512/1448/1448438.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/1448/1448438.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Coffee</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-lime-200 bg-lime-100 text-lime-800 hover:border-lime-400" data-category="Lunch">
-                        <img src="https://cdn-icons-png.flaticon.com/512/2515/2515271.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2515/2515271.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Lunch</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-teal-200 bg-teal-100 text-teal-800 hover:border-teal-400" data-category="Exercise">
-                        <img src="https://cdn-icons-png.flaticon.com/512/7681/7681038.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/7681/7681038.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Exercise</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400" data-category="Other">
-                        <img src="https://cdn-icons-png.flaticon.com/512/7245/7245102.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/7245/7245102.png" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Other</span>
+                    </button>
                     </button>
                 </div>
                 <input type="hidden" id="selected-category" name="category">
@@ -524,7 +525,7 @@
 
                 if (currentKcalSum <= KCAL_CAP) {
                     emoji = '✨ '; 
-                    kcalProgressText.textContent = `${emoji}${currentKcalSum} / ${KCAL_CAP} kcal (${remaining} kcal Remaining)`;
+                    kcalProgressText.textContent = `${emoji}${currentKcalSum} / ${KCAL_CAP} kcal (${remaining})`;
                 } else {
                     emoji = '⚠️ '; 
                     kcalProgressText.textContent = `${emoji}${currentKcalSum} / ${KCAL_CAP} kcal (${Math.abs(remaining)} kcal Over)`;
@@ -610,8 +611,7 @@
                                 <div class="flex-1 overflow-hidden text-ellipsis pr-2 font-semibold">
                                     ${item.Type}${descriptionPart}
                                 </div>
-                                <div class="font-bold ${item.total < 0 ? 'text-red-500' : 'text-green-600'} flex items-center"> 
-                                    <svg class="w-4 h-4 mr-1 ${item.total < 0 ? 'text-red-500' : 'text-green-600'}" fill="currentColor" viewBox="0 0 24 24"><use xlink:href="#icon-flame"></use></svg>
+                                <div class="font-bold ${item.total < 0 ? 'text-red-500' : 'text-green-600'} flex items-center">
                                     ${item.total}
                                 </div>
                             `;
