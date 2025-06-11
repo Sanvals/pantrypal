@@ -1,7 +1,7 @@
 import { Client } from '@notionhq/client';
 
 export default async function handler(req, res) {
-    const allowedOrigin = 'https://sanvals.github.io/';
+    const allowedOrigin = 'https://sanvals.github.io';
     
     // Set headers for all responses
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
