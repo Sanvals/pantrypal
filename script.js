@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (items.length === 0) {
             notionItemsDisplay.innerHTML = `
                 <div class="text-center py-8">
-                    <img src="https://cdn-icons-png.flaticon.com/512/7465/7465225.png" alt="Empty state icon" class="w-24 h-24 mx-auto mb-4 opacity-70">
+                    <img src="https://cdn-icons-png.flaticon.com/256/3048/3048419.png" alt="Empty state icon" class="w-24 h-24 mx-auto mb-4 opacity-70">
                     <p class="text-gray-500 font-semibold text-lg">Nothing logged for today yet!</p>
                     <p class="text-gray-400 text-sm mt-1">Start by adding your first meal on the 'Add' tab.</p>
                 </div>
@@ -541,19 +541,16 @@ document.addEventListener('DOMContentLoaded', function () {
             if (excess > 0) {
                 excessText = `+${excess}`;
                 excessClass = 'text-red-600';
-                emoji = '⚠️';
                 borderColor = 'border-red-300';
                 bgColor = 'bg-red-50';
             } else if (excess < 0) {
                 excessText = `${excess}`;
                 excessClass = 'text-green-600';
-                emoji = '✅';
                 borderColor = 'border-green-300';
                 bgColor = 'bg-green-50';
             } else {
                 excessText = `On Target`;
                 excessClass = 'text-gray-700';
-                emoji = '🎯';
                 borderColor = 'border-blue-300';
                 bgColor = 'bg-blue-50';
             }
@@ -563,7 +560,7 @@ document.addEventListener('DOMContentLoaded', function () {
             weekDiv.className = `flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 ${borderColor} ${bgColor} transition-all duration-300 ease-in-out hover:shadow-md hover:scale-[1.01] text-base font-semibold`;
             weekDiv.innerHTML = `
                 <span class="text-gray-800">${week.weekRange}</span>
-                <span class="${excessClass}">${emoji} ${excessText}</span>
+                <span class="${excessClass}">${excessText}</span>
             `;
             historyItemsDisplay.appendChild(weekDiv);
         });

@@ -93,7 +93,7 @@ export default async function handler(req, res) {
                 const combinedFilters = [];
 
                 // Prepare filters for the current week and 5 previous weeks (total 6 weeks)
-                for (let i = 0; i < 6; i++) {
+                for (let i = 0; i < 4; i++) {
                     const tempDate = new Date(); // Start with current date
                     // Go back 'i' full weeks (e.g., i=0 is current week, i=1 is last week, etc.)
                     tempDate.setDate(tempDate.getDate() - i * 7); 
@@ -149,8 +149,8 @@ export default async function handler(req, res) {
                 });
 
                 // Structure the data for the frontend (oldest week first, then newest)
-                // Loop backwards (from 5 to 0) to get weeks in chronological order from oldest to newest
-                for (let i = 5; i >= 0; i--) { 
+                // Loop backwards (from 3 to 0) to get weeks in chronological order from oldest to newest
+                for (let i = 3; i >= 0; i--) {
                     const tempDate = new Date();
                     tempDate.setDate(tempDate.getDate() - i * 7);
                     const weekStartDate = getStartOfWeek(tempDate);
