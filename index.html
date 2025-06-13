@@ -6,104 +6,12 @@
     <title>Pantry-Pal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/64/12493/12493626.png" type="image/png">
-    <link rel="preconnect" herf="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn-icons-png.flaticon.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <style>
-        @keyframes pulse-bg {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .animate-pulse-bg {
-            background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
-            background-size: 200% 100%;
-            animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
-        }
-
-        /* Specific pulse background for the send button when loading */
-        .send-button-pulse {
-            background: linear-gradient(to right, #d1d5db 0%, #a1a1aa 20%, #d1d5db 40%, #d1d5db 100%); /* Gray shades for the pulse */
-            background-size: 200% 100%;
-            animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
-        }
-
-        /* Keyframes for bounce/wiggle animation */
-        @keyframes bounce-wiggle {
-            0%, 100% { transform: translateX(0) translateY(0); }
-            25% { transform: translateX(-2px) translateY(-2px); }
-            50% { transform: translateX(2px) translateY(2px); }
-            75% { transform: translateX(-2px) translateY(-2px); }
-        }
-
-        .animate-bounce-wiggle {
-            animation: bounce-wiggle 0.3s ease-in-out;
-        }
-
-        /* Category selection pulse/glow */
-        @keyframes category-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); } /* Indigo-500 equivalent */
-            70% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-        }
-
-        .category-selected-glow {
-            animation: category-pulse 1s ease-out;
-        }
-
-        /* Checkmark for selected category */
-        .category-selected-checkmark::after {
-            content: '✓'; /* Unicode checkmark */
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            font-size: 0.8em;
-            color: white;
-            background-color: #4CAF50; /* Green */
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            line-height: 1; /* Adjust line-height to center the checkmark vertically */
-        }
-
-        /* Custom scrollbar for Notion items display */
-        #notion-items-display::-webkit-scrollbar {
-            width: 8px; /* width of the scrollbar */
-        }
-
-        #notion-items-display::-webkit-scrollbar-track {
-            background: #f1f1f1; /* color of the track */
-            border-radius: 10px;
-        }
-
-        #notion-items-display::-webkit-scrollbar-thumb {
-            background: #cbd5e1; /* color of the scroll thumb (slate-300) */
-            border-radius: 10px;
-        }
-
-        #notion-items-display::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; /* color when hovering over thumb (slate-400) */
-        }
-
-        /* Category icon bounce animation */
-        @keyframes category-icon-bounce {
-            0%, 100% { transform: translateY(0) scale(1.25); }
-            50% { transform: translateY(-3px) scale(1.3); } /* Slightly larger bounce */
-        }
-        .category-selected-glow img {
-            animation: category-icon-bounce 0.3s ease-out; /* Apply to the image within the selected button */
-        }
-
-        
-
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="font-['Outfit'] bg-gradient-to-br from-purple-100 via-rose-100 to-amber-100 flex items-center justify-center min-h-screen p-4">
 
@@ -116,9 +24,10 @@
             </div>
         </div>
 
-        <div class="flex border-b-2 border-gray-300 -mx-6 px-6 pt-2">
+        <div class="flex border-b-2 border-gray-300 -mx-6 px-6 pt-2 gap-1">
             <button id="tab-category" class="flex-1 py-2 px-3 text-center text-base font-bold rounded-t-xl cursor-pointer transition-colors duration-200 bg-indigo-500 text-white shadow-md">Add</button>
             <button id="tab-today" class="flex-1 py-2 px-3 text-center text-base font-bold rounded-t-xl cursor-pointer transition-colors duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300">Today</button>
+            <button id="tab-history" class="flex-1 py-2 px-3 text-center text-base font-bold rounded-t-xl cursor-pointer transition-colors duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300">History</button>
         </div>
 
         <div class="pt-2">
@@ -129,31 +38,31 @@
         </div>
         <div id="section-category" class="space-y-2 mt-4">
             <div>
+                <!-- IMPORTANT: Ensure this div has the correct ID 'category-container' -->
                 <div id="category-container" class="grid grid-cols-3 gap-3 mt-2">
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-sky-200 bg-sky-100 text-sky-800 hover:border-sky-400" data-category="Breakfast">
-                        <img src="https://cdn-icons-png.flaticon.com/128/9702/9702245.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/9702/9702245.png" alt="Breakfast icon" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Breakfast</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400" data-category="Collagen">
-                        <img src="https://cdn-icons-png.flaticon.com/128/11210/11210895.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/11210/11210895.png" alt="Collagen icon" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Collagen</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-amber-200 bg-amber-100 text-amber-800 hover:border-amber-400" data-category="Coffee">
-                        <img src="https://cdn-icons-png.flaticon.com/128/1448/1448438.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/1448/1448438.png" alt="Coffee icon" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Coffee</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-lime-200 bg-lime-100 text-lime-800 hover:border-lime-400" data-category="Lunch">
-                        <img src="https://cdn-icons-png.flaticon.com/128/2515/2515271.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2515/2515271.png" alt="Lunch icon" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Lunch</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-teal-200 bg-teal-100 text-teal-800 hover:border-teal-400" data-category="Exercise">
-                        <img src="https://cdn-icons-png.flaticon.com/128/7681/7681038.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/7681/7681038.png" alt="Exercise icon" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Exercise</span>
                     </button>
                     <button class="relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400" data-category="Other">
-                        <img src="https://cdn-icons-png.flaticon.com/128/7245/7245102.png" class="w-10 h-10 transition-transform duration-600 ease-in">
+                        <img src="https://cdn-icons-png.flaticon.com/128/7245/7245102.png" alt="Other icon" class="w-10 h-10 transition-transform duration-600 ease-in">
                         <span class="mt-1.5 text-xs font-medium">Other</span>
-                    </button>
                     </button>
                 </div>
                 <input type="hidden" id="selected-category" name="category">
@@ -184,10 +93,18 @@
 
         <div id="section-today" class="space-y-2 mt-4 hidden">
             <div id="notion-items-display" class="bg-gray-50 p-4 rounded-lg shadow-inner max-h-80 overflow-y-auto space-y-2 text-lg text-gray-700 mt-2">
-                </div>
+                <!-- Notion items will be dynamically loaded here by script.js -->
+            </div>
         </div>
 
+        <div id="section-history" class="p-4 bg-white rounded-b-xl shadow-md hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Past 6 Weeks Overview</h2>
+            <div id="history-items-display" class="space-y-4">
+                <p class="text-gray-500 text-center">Loading history data...</p>
+            </div>
+        </div>
     </div>
-    <script src="script.js"></script>
+    <!-- Script tag moved to the end of body for DOMContentLoaded to be reliable -->
+    <script src="script.js" defer></script> 
 </body>
 </html>

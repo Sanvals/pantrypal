@@ -18,16 +18,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const tabCategoryBtn = document.getElementById('tab-category');
     const tabTodayBtn = document.getElementById('tab-today');
+    const tabHistoryBtn = document.getElementById('tab-history');
     const sectionCategory = document.getElementById('section-category');
     const sectionToday = document.getElementById('section-today');
+    const sectionHistory = document.getElementById('section-history');
+    const historyItemsDisplay = document.getElementById('history-items-display');
 
     // --- NOTION API ENDPOINT CONFIGURATION ---
-    const NOTION_BACKEND_URL = 
+    const NOTION_BACKEND_URL =
         window.location.hostname === 'localhost' ?
         '/api/pantryapi' :
         'https://pantrypal-gilt.vercel.app/api/pantryapi';
 
-    console.log(window.location.hostname)
+    console.log("Current hostname:", window.location.hostname);
+
     const kcalPlaceholders = {
         "Coffee": "50",
         "Breakfast": "311",
@@ -118,12 +122,18 @@ document.addEventListener('DOMContentLoaded', function () {
     let lastNotionFetchTime = 0;
     const NOTION_CACHE_DURATION = 5 * 60 * 1000; // Cache for 5 minutes (adjust as needed)
 
+    let cachedHistoryData = null;
+    let lastHistoryFetchTime = 0;
+    const HISTORY_CACHE_DURATION = 15 * 60 * 1000; // Cache for 15 minutes, can be longer as it's less dynamic
+
     function showTab(tabName) {
         setTabActiveState(tabCategoryBtn, false);
         setTabActiveState(tabTodayBtn, false);
+        setTabActiveState(tabHistoryBtn, false);
 
         sectionCategory.classList.add('hidden');
         sectionToday.classList.add('hidden');
+        sectionHistory.classList.add('hidden');
 
         if (tabName === 'category') {
             setTabActiveState(tabCategoryBtn, true);
@@ -132,6 +142,10 @@ document.addEventListener('DOMContentLoaded', function () {
             setTabActiveState(tabTodayBtn, true);
             sectionToday.classList.remove('hidden');
             displayNotionItemsFromCacheOrFetch();
+        } else if (tabName === 'history') {
+            setTabActiveState(tabHistoryBtn, true);
+            sectionHistory.classList.remove('hidden');
+            fetchAndDisplayHistoryData();
         }
     }
 
@@ -183,15 +197,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (kcalPlaceholders[selectedCategory]) {
             const placeholderValue = (selectedCategory === "Exercise") ? -Math.abs(parseInt(kcalPlaceholders[selectedCategory] || 0)) : kcalPlaceholders[selectedCategory];
-            kcalInput.placeholder = `kcal (${placeholderValue})`;
+            kcalInput.placeholder = `kcal (e.g., ${placeholderValue})`;
         } else {
-            kcalInput.placeholder = "kcal (350)";
+            kcalInput.placeholder = "kcal (e.g., 350)";
         }
 
         if (selectedCategory === "Exercise" && kcalInput.value !== "") {
-             kcalInput.value = -Math.abs(parseInt(kcalInput.value || 0));
+            kcalInput.value = -Math.abs(parseInt(kcalInput.value || 0));
         } else if (selectedCategory !== "Exercise" && kcalInput.value !== "" && parseInt(kcalInput.value) < 0) {
-             kcalInput.value = Math.abs(parseInt(kcalInput.value));
+            kcalInput.value = Math.abs(parseInt(kcalInput.value));
         }
 
         updateDescriptionPlaceholder(selectedCategory);
@@ -250,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
             hiddenCategoryInput.value = '';
             descriptionInput.value = '';
             kcalInput.value = '';
-            kcalInput.placeholder = "kcal (300)";
+            kcalInput.placeholder = "kcal (e.g., 350)";
 
             const allButtons = categoryContainer.querySelectorAll('button');
             allButtons.forEach(btn => {
@@ -276,8 +290,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 navigator.vibrate(50);
             }
 
-            cachedNotionItems = null; // Mark cache as stale
+            cachedNotionItems = null; // Mark cache as stale for 'Today' tab
             lastNotionFetchTime = 0; // Reset fetch time
+            cachedHistoryData = null; // Mark cache as stale for 'History' tab
+            lastHistoryFetchTime = 0; // Reset fetch time
             displayNotionItemsFromCacheOrFetch(true); // Force a re-fetch to update the progress bar and 'Today' tab content
         } catch (error) {
             console.error('Failed to send to Notion:', error);
@@ -310,6 +326,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const newPercentage = Math.min(100, (currentKcalSum / KCAL_CAP) * 100);
 
         kcalProgressFill.style.width = `${newPercentage}%`;
+
+        const progressIcon = document.getElementById('progress-icon');
+        if (progressIcon) {
+            progressIcon.style.left = `${newPercentage}%`;
+            progressIcon.classList.remove('icon-animate-bounce');
+            void progressIcon.offsetWidth; // Trigger reflow
+            progressIcon.classList.add('icon-animate-bounce');
+        }
 
         let emoji = '';
         const remaining = KCAL_CAP - currentKcalSum;
@@ -356,6 +380,59 @@ document.addEventListener('DOMContentLoaded', function () {
         kcalProgressBarContainer.setAttribute('aria-valuetext', `${currentKcalSum} out of ${KCAL_CAP} kcal consumed today.`);
     }
 
+    async function deleteNotionItem(pageId) {
+        if (!confirm('Are you sure you want to delete this item?')) {
+            return; // User cancelled
+        }
+
+        messageArea.textContent = 'Deleting item...';
+        messageArea.style.color = '#3b82f6'; // Blue for info/loading
+        notionItemsDisplay.style.opacity = '0.5'; // Dim the list
+
+        try {
+            const response = await fetch(NOTION_BACKEND_URL, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ pageId: pageId })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Backend (DELETE) error:', errorData);
+                throw new Error(`Error: ${errorData.message || errorData.error || 'Unknown deletion error'}`);
+            }
+
+            const result = await response.json();
+            console.log('Successfully deleted from Notion via backend:', result);
+            messageArea.textContent = 'Item deleted successfully!';
+            messageArea.style.color = '#10b981'; // Green for success
+
+            cachedNotionItems = null; // Invalidate 'Today' cache
+            lastNotionFetchTime = 0;
+            cachedHistoryData = null; // Invalidate 'History' cache
+            lastHistoryFetchTime = 0;
+            await displayNotionItemsFromCacheOrFetch(true); // Force re-fetch and update UI
+            // If the user is on the History tab, trigger a refresh there too
+            if (!sectionHistory.classList.contains('hidden')) {
+                 await fetchAndDisplayHistoryData(true);
+            }
+
+
+        } catch (error) {
+            console.error('Failed to delete item from Notion:', error);
+            messageArea.textContent = `Error: ${error.message || 'Network error during deletion.'}`;
+            messageArea.style.color = '#dc2626'; // Red for error
+        } finally {
+            notionItemsDisplay.style.opacity = '1'; // Restore opacity
+            setTimeout(() => {
+                messageArea.textContent = ''; // Clear message after a delay
+            }, 3000);
+        }
+    }
+
+
     function renderNotionItems(items) {
         notionItemsDisplay.innerHTML = '';
         notionItemsDisplay.classList.remove('bg-gray-100');
@@ -372,13 +449,18 @@ document.addEventListener('DOMContentLoaded', function () {
             items.forEach(item => {
                 const descriptionPart = (item.name && item.name !== 'Untitled' && item.name !== 'Untitled Page' && item.name.trim() !== '') ? ` - ${item.name}` : '';
                 const itemDiv = document.createElement('div');
-                itemDiv.className = 'py-2 flex justify-between items-center border-b border-gray-100 last:border-b-0 last:pb-0 text-base md:text-lg';
+                itemDiv.className = 'py-2 flex justify-between items-center border-b border-gray-100 last:border-b-0 last:pb-0 text-base md:text-lg group';
                 itemDiv.innerHTML = `
                     <div class="flex-1 overflow-hidden text-ellipsis pr-2 font-semibold">
                         ${item.Type}${descriptionPart}
                     </div>
                     <div class="font-bold ${item.total < 0 ? 'text-red-500' : 'text-green-600'} flex items-center">
                         ${item.total}
+                        <button class="delete-btn ml-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" data-id="${item.id}" title="Delete item">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
                 `;
                 notionItemsDisplay.appendChild(itemDiv);
@@ -411,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Backend (GET) error:', errorData);
+                console.error('Backend (GET today) error:', errorData);
                 throw new Error(`Error: ${errorData.message || errorData.error || 'Unknown backend error'}`);
             }
 
@@ -431,45 +513,157 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // MODIFIED FUNCTION: renderHistoryData for single-line display
+    function renderHistoryData(historyData) {
+        historyItemsDisplay.innerHTML = ''; // Clear previous content
+        historyItemsDisplay.classList.remove('bg-gray-100');
+        historyItemsDisplay.classList.add('flex', 'flex-col'); // Adjust grid for smaller items
+
+        if (!historyData || historyData.length === 0) {
+            historyItemsDisplay.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7465/7465225.png" alt="Empty history icon" class="w-24 h-24 mx-auto mb-4 opacity-70">
+                    <p class="text-gray-500 font-semibold text-lg">No history data available yet!</p>
+                    <p class="text-gray-400 text-sm mt-1">Log some meals to see your past weeks.</p>
+                </div>
+            `;
+            return;
+        }
+
+        historyData.forEach(week => {
+            const excess = week.excess; // Direct use of excess from backend
+            let excessText = '';
+            let excessClass = '';
+            let emoji = '';
+            let borderColor = 'border-gray-200';
+            let bgColor = 'bg-gray-50';
+
+            if (excess > 0) {
+                excessText = `+${excess} kcal Over`;
+                excessClass = 'text-red-600';
+                emoji = '⚠️';
+                borderColor = 'border-red-300';
+                bgColor = 'bg-red-50';
+            } else if (excess < 0) {
+                excessText = `${excess} kcal Under`; // Already negative
+                excessClass = 'text-green-600';
+                emoji = '✅';
+                borderColor = 'border-green-300';
+                bgColor = 'bg-green-50';
+            } else {
+                excessText = `On Target`;
+                excessClass = 'text-gray-700';
+                emoji = '🎯';
+                borderColor = 'border-blue-300';
+                bgColor = 'bg-blue-50';
+            }
+
+            const weekDiv = document.createElement('div');
+            // Modified innerHTML to be a single line display
+            weekDiv.className = `flex items-center justify-between p-3 rounded-lg shadow-sm border-l-4 ${borderColor} ${bgColor} transition-all duration-300 ease-in-out hover:shadow-md hover:scale-[1.01] text-base font-semibold`;
+            weekDiv.innerHTML = `
+                <span class="text-gray-800">${week.weekRange}</span>
+                <span class="${excessClass}">${emoji} ${excessText}</span>
+            `;
+            historyItemsDisplay.appendChild(weekDiv);
+        });
+    }
+
+    async function fetchAndDisplayHistoryData(forceFetch = false) {
+        const now = Date.now();
+
+        if (cachedHistoryData && (now - lastHistoryFetchTime < HISTORY_CACHE_DURATION) && !forceFetch) {
+            console.log('Using cached history data for "History" tab.');
+            renderHistoryData(cachedHistoryData);
+            return;
+        }
+
+        console.log('Fetching fresh history data...');
+        historyItemsDisplay.innerHTML = getSkeletonLoaderHtml(6);
+        historyItemsDisplay.classList.add('bg-gray-100');
+
+        try {
+            const response = await fetch(`${NOTION_BACKEND_URL}?period=history`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Backend (GET history) error:', errorData);
+                throw new Error(`Error: ${errorData.message || errorData.error || 'Unknown backend error'}`);
+            }
+
+            const data = await response.json();
+            cachedHistoryData = data.history;
+            lastHistoryFetchTime = now;
+
+            renderHistoryData(cachedHistoryData);
+
+        } catch (error) {
+            console.error('Failed to load history data:', error);
+            historyItemsDisplay.innerHTML = `<p class="text-center text-red-500 col-span-full">Failed to load history: ${error.message}</p>`;
+            cachedHistoryData = null;
+            lastHistoryFetchTime = 0;
+        } finally {
+            // No specific progress bar to update here, but ensure UI is ready
+        }
+    }
+
+
     sendBtn.addEventListener('click', function() {
         const category = hiddenCategoryInput.value;
         const description = descriptionInput.value;
-        let kcal = kcalInput.value;
+        let kcal = kcalInput.value.trim();
 
         if (!category) {
             messageArea.textContent = 'Please select a category.';
             messageArea.style.color = '#dc2626';
             return;
         }
+
         if (!kcal) {
-            const placeholderMatch = kcalInput.placeholder.match(/-?\d+/); // Regex to find a number (positive or negative)
+            const placeholderMatch = kcalInput.placeholder.match(/-?\d+/);
             if (placeholderMatch) {
-                kcal = placeholderMatch[0]; // Use the extracted number string
+                kcal = placeholderMatch[0];
             } else {
-                // Fallback if placeholder doesn't contain a valid number (shouldn't happen with current setup)
                 messageArea.textContent = 'Please enter a valid kcal value or ensure a default is available.';
                 messageArea.style.color = '#dc2626';
                 return;
             }
         }
 
-        if (isNaN(parseFloat(kcal))) { // Validate after potentially setting from placeholder
+        if (isNaN(parseFloat(kcal))) {
             messageArea.textContent = 'Please enter a valid kcal value.';
             messageArea.style.color = '#dc2626';
             return;
         }
 
-        kcal = parseInt(kcal, 10); // Parse to integer
+        kcal = parseInt(kcal, 10);
 
         sendToNotion({ category, description, kcal });
     });
 
     tabCategoryBtn.addEventListener('click', () => showTab('category'));
     tabTodayBtn.addEventListener('click', () => showTab('today'));
+    tabHistoryBtn.addEventListener('click', () => showTab('history'));
 
-    // Initial load: Fetch data on page load for the progress bar and to cache for 'Today' tab
+    // Event listener for delete buttons using event delegation
+    notionItemsDisplay.addEventListener('click', function(event) {
+        const deleteButton = event.target.closest('.delete-btn');
+        if (deleteButton) {
+            const pageIdToDelete = deleteButton.dataset.id;
+            if (pageIdToDelete) {
+                deleteNotionItem(pageIdToDelete);
+            }
+        }
+    });
+
+    // Initial load
     displayNotionItemsFromCacheOrFetch();
-    showTab('category'); // Ensure the 'Add' tab is shown initially
+    showTab('category');
     updateDescriptionPlaceholder("Breakfast");
 
     // Add preconnect tags dynamically

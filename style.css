@@ -1,0 +1,88 @@
+
+@keyframes pulse-bg {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.animate-pulse-bg {
+    background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+    background-size: 200% 100%;
+    animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Specific pulse background for the send button when loading */
+.send-button-pulse {
+    background: linear-gradient(to right, #d1d5db 0%, #a1a1aa 20%, #d1d5db 40%, #d1d5db 100%); /* Gray shades for the pulse */
+    background-size: 200% 100%;
+    animation: pulse-bg 1.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Keyframes for bounce/wiggle animation */
+@keyframes bounce-wiggle {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    25% { transform: translateX(-2px) translateY(-2px); }
+    50% { transform: translateX(2px) translateY(2px); }
+    75% { transform: translateX(-2px) translateY(-2px); }
+}
+
+.animate-bounce-wiggle {
+    animation: bounce-wiggle 0.3s ease-in-out;
+}
+
+/* Category selection pulse/glow */
+@keyframes category-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); } /* Indigo-500 equivalent */
+    70% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.category-selected-glow {
+    animation: category-pulse 1s ease-out;
+}
+
+/* Checkmark for selected category */
+.category-selected-checkmark::after {
+    content: '✓'; /* Unicode checkmark */
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.8em;
+    color: white;
+    background-color: #4CAF50; /* Green */
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    line-height: 1; /* Adjust line-height to center the checkmark vertically */
+}
+
+/* Custom scrollbar for Notion items display */
+#notion-items-display::-webkit-scrollbar {
+    width: 8px; /* width of the scrollbar */
+}
+
+#notion-items-display::-webkit-scrollbar-track {
+    background: #f1f1f1; /* color of the track */
+    border-radius: 10px;
+}
+
+#notion-items-display::-webkit-scrollbar-thumb {
+    background: #cbd5e1; /* color of the scroll thumb (slate-300) */
+    border-radius: 10px;
+}
+
+#notion-items-display::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; /* color when hovering over thumb (slate-400) */
+}
+
+/* Category icon bounce animation */
+@keyframes category-icon-bounce {
+    0%, 100% { transform: translateY(0) scale(1.25); }
+    50% { transform: translateY(-3px) scale(1.3); } /* Slightly larger bounce */
+}
+.category-selected-glow img {
+    animation: category-icon-bounce 0.3s ease-out; /* Apply to the image within the selected button */
+}
