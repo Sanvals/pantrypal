@@ -441,13 +441,25 @@ document.addEventListener('DOMContentLoaded', function () {
             messageArea.style.color = '#dc2626';
             return;
         }
-        if (!kcal || isNaN(parseFloat(kcal))) {
+        if (!kcal) {
+            const placeholderMatch = kcalInput.placeholder.match(/-?\d+/); // Regex to find a number (positive or negative)
+            if (placeholderMatch) {
+                kcal = placeholderMatch[0]; // Use the extracted number string
+            } else {
+                // Fallback if placeholder doesn't contain a valid number (shouldn't happen with current setup)
+                messageArea.textContent = 'Please enter a valid kcal value or ensure a default is available.';
+                messageArea.style.color = '#dc2626';
+                return;
+            }
+        }
+
+        if (isNaN(parseFloat(kcal))) { // Validate after potentially setting from placeholder
             messageArea.textContent = 'Please enter a valid kcal value.';
             messageArea.style.color = '#dc2626';
             return;
         }
 
-        kcal = parseInt(kcal, 10);
+        kcal = parseInt(kcal, 10); // Parse to integer
 
         sendToNotion({ category, description, kcal });
     });
