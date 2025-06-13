@@ -22,9 +22,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const sectionToday = document.getElementById('section-today');
 
     // --- NOTION API ENDPOINT CONFIGURATION ---
-    // const NOTION_BACKEND_URL = '/api/pantryapi'; // Local deployment
-    const NOTION_BACKEND_URL = 'https://pantrypal-gilt.vercel.app/api/pantryapi'; // Uncomment for Vercel/production deployment
+    const NOTION_BACKEND_URL = 
+        window.location.hostname === 'localhost' ?
+        '/api/pantryapi' :
+        'https://pantrypal-gilt.vercel.app/api/pantryapi';
 
+    console.log(window.location.hostname)
     const kcalPlaceholders = {
         "Coffee": "50",
         "Breakfast": "311",
