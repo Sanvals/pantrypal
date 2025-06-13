@@ -539,13 +539,13 @@ document.addEventListener('DOMContentLoaded', function () {
             let bgColor = 'bg-gray-50';
 
             if (excess > 0) {
-                excessText = `+${excess} kcal Over`;
+                excessText = `+${excess}`;
                 excessClass = 'text-red-600';
                 emoji = '⚠️';
                 borderColor = 'border-red-300';
                 bgColor = 'bg-red-50';
             } else if (excess < 0) {
-                excessText = `${excess} kcal Under`; // Already negative
+                excessText = `${excess}`;
                 excessClass = 'text-green-600';
                 emoji = '✅';
                 borderColor = 'border-green-300';
