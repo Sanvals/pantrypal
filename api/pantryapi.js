@@ -3,7 +3,7 @@ import { Client } from '@notionhq/client';
 export default async function handler(req, res) {
     const allowedOrigin = 'https://sanvals.github.io';
     
-    // Set headers for all responses
+    // Headers
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Allow GET, POST, and OPTIONS
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow Content-Type and Authorization headers
@@ -18,14 +18,14 @@ export default async function handler(req, res) {
 
 
     const notion = new Client({ auth: process.env.NOTION_API_KEY });
-    const databaseId = process.env.NOTION_DATABASE_ID; // Your main Pantry database ID
 
-    const sumDatabaseId = process.env.NOTION_SUM_DATABASE_ID;
-    const monthlyDatabaseId = process.env.NOTION_MONTHLY_DATABASE_ID;
+    const databaseId = process.env.NOTION_DATABASE_ID;
+    const sumPageId = process.env.NOTION_SUM_PAGE_ID;
+    const monthlyPageId = process.env.NOTION_MONTHLY_PAGE_ID;
 
-    if (!process.env.NOTION_API_KEY || !databaseId || !sumDatabaseId || !monthlyDatabaseId) {
-        console.error('SERVER ERROR: One or more Notion API keys/Database IDs not configured.');
-        return res.status(500).json({ error: 'Server configuration error: Notion API key or required Database IDs missing.' });
+    if (!process.env.NOTION_API_KEY || !databaseId || !sumPageId || !monthlyPageId) {
+        console.error('SERVER ERROR: One or more Notion API keys not configured.');
+        return res.status(500).json({ error: 'Server configuration error: Notion API key missing.' });
     }
 
     const getTodayFormattedDate = () => {
@@ -45,33 +45,6 @@ export default async function handler(req, res) {
         "Exercise": "🧘 Exercise",
         "Other": "✨ Other"
     };
-
-    async function findPageByTitle(dbId, title) {
-        try {
-            const response = await notion.databases.query({
-                database_id: dbId,
-                filter: {
-                    property: 'title',
-                    title: {
-                        equals: title
-                    }
-                }
-            });
-
-            if (response.results.length > 0) {
-                if (response.results.length > 1) {
-                    console.warn(`[RELATION] Multiple pages found with title "${title}" in database ${dbId}. Using the first one found.`);
-                }
-                return response.results[0].id;
-            } else {
-                console.warn(`[RELATION] Page with title "${title}" not found in database ${dbId}.`);
-                return null;
-            }
-        } catch (error) {
-            console.error(`[RELATION] Error finding page with title "${title}" in database ${dbId}:`, error.message);
-            throw new Error(`Failed to find required Notion page for relation: ${title}`);
-        }
-    }
 
     if (req.method === 'GET') {
         try {
@@ -142,16 +115,6 @@ export default async function handler(req, res) {
             if (!notionTag) {
                 console.warn(`[POST] No Notion tag mapping found for category: ${category}`);
                 return res.status(400).json({ error: `Invalid category selected: ${category}. No matching Notion tag found.` });
-            }
-
-            const sumPageId = await findPageByTitle(sumDatabaseId, "1500");
-            const monthlyPageId = await findPageByTitle(monthlyDatabaseId, "1800");
-
-            if (!sumPageId) {
-                return res.status(500).json({ error: "Required 'Sum' relation page (1500) not found in its database. Please ensure it exists." });
-            }
-            if (!monthlyPageId) {
-                return res.status(500).json({ error: "Required 'Monthly' relation page (1800) not found in its database. Please ensure it exists." });
             }
 
             console.log(`[POST] Adding new Notion page: Activity=${contentForNotionTitle}, Type=${notionTag}, Cal=${kcal}`);
