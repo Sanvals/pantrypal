@@ -183,9 +183,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (kcalPlaceholders[selectedCategory]) {
             const placeholderValue = (selectedCategory === "Exercise") ? -Math.abs(parseInt(kcalPlaceholders[selectedCategory] || 0)) : kcalPlaceholders[selectedCategory];
-            kcalInput.placeholder = `kcal (e.g., ${placeholderValue})`;
+            kcalInput.placeholder = `kcal (${placeholderValue})`;
         } else {
-            kcalInput.placeholder = "kcal (e.g., 350)";
+            kcalInput.placeholder = "kcal (350)";
         }
 
         if (selectedCategory === "Exercise" && kcalInput.value !== "") {
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
             hiddenCategoryInput.value = '';
             descriptionInput.value = '';
             kcalInput.value = '';
-            kcalInput.placeholder = "kcal (e.g., 350)";
+            kcalInput.placeholder = "kcal (300)";
 
             const allButtons = categoryContainer.querySelectorAll('button');
             allButtons.forEach(btn => {
