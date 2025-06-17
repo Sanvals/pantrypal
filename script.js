@@ -24,11 +24,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const sectionHistory = document.getElementById('section-history');
     const historyItemsDisplay = document.getElementById('history-items-display');
 
+    function showConfetti(toShow) {
+        var emojiToShow = confetti.shapeFromText({ text: toShow, scalar: 4 })
+
+        confetti({
+            particleCount: 20,
+            spread: 360,
+            ticks: 60,
+            gravity: 0,
+            decay: 0.96,
+            startVelocity: 10,
+            shapes: [emojiToShow],
+            scalar: 2
+        });
+    }
+
     // --- NOTION API ENDPOINT CONFIGURATION ---
     const NOTION_BACKEND_URL =
         window.location.hostname === 'localhost' ?
-        '/api/pantryapi' :
-        'https://pantrypal-gilt.vercel.app/api/pantryapi';
+            '/api/pantryapi' :
+            'https://pantrypal-gilt.vercel.app/api/pantryapi';
 
     console.log("Current hostname:", window.location.hostname);
 
@@ -160,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ];
     const categoryDefaultImgClasses = ['transition-transform', 'duration-600', 'ease-in'];
 
-    categoryContainer.addEventListener('click', function(e) {
+    categoryContainer.addEventListener('click', function (e) {
         const clickedButton = e.target.closest('button');
         if (!clickedButton || !clickedButton.dataset.category) return;
 
@@ -212,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
         descriptionInput.focus();
     });
 
-    kcalInput.addEventListener('input', function() {
+    kcalInput.addEventListener('input', function () {
         const selectedCategory = hiddenCategoryInput.value;
         if (selectedCategory === "Exercise" && parseInt(this.value) > 0) {
             this.value = -Math.abs(parseInt(this.value));
@@ -221,13 +236,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    descriptionInput.addEventListener('keydown', function(event) {
+    descriptionInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
             event.preventDefault();
             sendBtn.click();
         }
     });
-    kcalInput.addEventListener('keydown', function(event) {
+    kcalInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
             event.preventDefault();
             sendBtn.click();
@@ -307,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sendBtnLoadingText.classList.add('hidden');
                 sendBtn.classList.remove('bg-gray-400', 'text-gray-600', 'send-button-pulse', 'cursor-not-allowed');
                 sendBtn.classList.add('bg-rose-500', 'text-white', 'hover:bg-rose-600', 'active:bg-rose-700', 'shadow-md');
+                showConfetti('⭐');
             }, 2000);
         }
     }
@@ -416,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function () {
             await displayNotionItemsFromCacheOrFetch(true); // Force re-fetch and update UI
             // If the user is on the History tab, trigger a refresh there too
             if (!sectionHistory.classList.contains('hidden')) {
-                 await fetchAndDisplayHistoryData(true);
+                await fetchAndDisplayHistoryData(true);
             }
 
 
@@ -610,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    sendBtn.addEventListener('click', function() {
+    sendBtn.addEventListener('click', function () {
         const category = hiddenCategoryInput.value;
         const description = descriptionInput.value;
         let kcal = kcalInput.value.trim();
@@ -648,7 +664,7 @@ document.addEventListener('DOMContentLoaded', function () {
     tabHistoryBtn.addEventListener('click', () => showTab('history'));
 
     // Event listener for delete buttons using event delegation
-    notionItemsDisplay.addEventListener('click', function(event) {
+    notionItemsDisplay.addEventListener('click', function (event) {
         const deleteButton = event.target.closest('.delete-btn');
         if (deleteButton) {
             const pageIdToDelete = deleteButton.dataset.id;

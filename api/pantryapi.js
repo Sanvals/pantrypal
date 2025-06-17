@@ -1,11 +1,23 @@
 import { Client } from '@notionhq/client';
+import { getTodayFormattedDate, getStartOfWeek, getEndOfWeek, formatError } from './helpers.js';
+
+const WEEKS_TO_FETCH = 4;
+
+const notionCategoryMap = {
+    "Breakfast": "🥣 Breakfast",
+    "Collagen": "🦵Collagen",
+    "Coffee": "☕ Coffee",
+    "Lunch": "🍽️ Lunch",
+    "Exercise": "🧘 Exercise",
+    "Other": "✨ Other"
+};
 
 export default async function handler(req, res) {
-    const allowedOrigin = 'https://sanvals.github.io'; 
-    
+    const allowedOrigin = 'https://sanvals.github.io';
+
     // Headers for CORS
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS'); // ADD DELETE to allowed methods
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Max-Age', '86400');
 
@@ -15,69 +27,15 @@ export default async function handler(req, res) {
     }
 
     const notion = new Client({ auth: process.env.NOTION_API_KEY });
-
-    // Notion IDs from environment variables
-    const databaseId = process.env.NOTION_DATABASE_ID; // Main Pantry database ID
-    const sumPageId = process.env.NOTION_SUM_PAGE_ID;       // Fixed Page ID for overall sum
-    const monthlyPageId = process.env.NOTION_MONTHLY_PAGE_ID; // Fixed Page ID for monthly sum
+    const databaseId = process.env.NOTION_DATABASE_ID;
+    const sumPageId = process.env.NOTION_SUM_PAGE_ID;
+    const monthlyPageId = process.env.NOTION_MONTHLY_PAGE_ID;
 
     // Validate essential environment variables are configured
     if (!process.env.NOTION_API_KEY || !databaseId || !sumPageId || !monthlyPageId) {
         console.error('SERVER ERROR: One or more Notion API keys/Database IDs/Page IDs not configured.');
         return res.status(500).json({ error: 'Server configuration error: Missing Notion API key or required IDs.' });
     }
-
-    /**
-     * Helper function to get today's date in YYYY-MM-DD format.
-     */
-    const getTodayFormattedDate = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    /**
-     * Helper function to get the start of the week (Monday) for a given date.
-     * @param {Date} date - The date to find the start of the week for.
-     * @returns {Date} - The Date object representing the Monday of that week.
-     */
-    const getStartOfWeek = (date) => {
-        const d = new Date(date);
-        const day = d.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
-        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
-        d.setDate(diff);
-        d.setHours(0, 0, 0, 0); // Set to beginning of the day
-        d.setMilliseconds(0); // Ensure no milliseconds
-        return d;
-    };
-
-    /**
-     * Helper function to get the end of the week (Sunday) for a given date.
-     * @param {Date} date - The date to find the end of the week for.
-     * @returns {Date} - The Date object representing the Sunday of that week.
-     */
-    const getEndOfWeek = (date) => {
-        const d = new Date(getStartOfWeek(date)); // Start from Monday
-        d.setDate(d.getDate() + 6); // Add 6 days to get to Sunday
-        d.setHours(23, 59, 59, 999); // Set to end of the day
-        d.setMilliseconds(999); // Ensure end of milliseconds
-        return d;
-    };
-
-    /**
-     * Mapping frontend category names to Notion 'Type' property names (including emojis).
-     * Ensure these strings EXACTLY match the options in your Notion database's 'Type' select property.
-     */
-    const notionCategoryMap = {
-        "Breakfast": "🥣 Breakfast",
-        "Collagen": "🦵Collagen",
-        "Coffee": "☕ Coffee",
-        "Lunch": "🍽️ Lunch",
-        "Exercise": "🧘 Exercise",
-        "Other": "✨ Other"
-    };
 
     // --- GET Request Handler (for both Today and History) ---
     if (req.method === 'GET') {
@@ -88,19 +46,18 @@ export default async function handler(req, res) {
             console.log('[GET] Fetching historical data...');
             try {
                 const WEEKLY_KCAL_TARGET_TOTAL = 1800 * 7; // Weekly target for history calculation
-
-                const weeksData = [];
                 const combinedFilters = [];
+                const weekKeys = [];
 
                 // Prepare filters for the current week and 5 previous weeks (total 6 weeks)
-                for (let i = 0; i < 4; i++) {
+                for (let i = 0; i < WEEKS_TO_FETCH; i++) {
                     const tempDate = new Date(); // Start with current date
                     // Go back 'i' full weeks (e.g., i=0 is current week, i=1 is last week, etc.)
-                    tempDate.setDate(tempDate.getDate() - i * 7); 
+                    tempDate.setDate(tempDate.getDate() - i * 7);
 
                     const weekStartDate = getStartOfWeek(tempDate);
                     const weekEndDate = getEndOfWeek(weekStartDate);
-
+                    weekKeys.push(weekStartDate.toISOString().split('T')[0]);
                     combinedFilters.push({
                         property: 'Date',
                         date: {
@@ -129,7 +86,7 @@ export default async function handler(req, res) {
 
                 response.results.forEach(page => {
                     // Use 'Cal' for summation as it's the direct input column
-                    const kcalValue = page.properties.Cal?.number || 0; 
+                    const kcalValue = page.properties.Cal?.number || 0;
                     const dateProperty = page.properties.Date?.date?.start;
 
                     if (dateProperty) {
@@ -150,36 +107,28 @@ export default async function handler(req, res) {
 
                 // Structure the data for the frontend (oldest week first, then newest)
                 // Loop backwards (from 3 to 0) to get weeks in chronological order from oldest to newest
-                for (let i = 3; i >= 0; i--) {
-                    const tempDate = new Date();
-                    tempDate.setDate(tempDate.getDate() - i * 7);
-                    const weekStartDate = getStartOfWeek(tempDate);
-                    const weekKey = weekStartDate.toISOString().split('T')[0];
-
+                const weeksData = weekKeys.reverse().map(weekKey => {
                     const weekData = aggregatedWeeks[weekKey] || {
                         totalKcal: 0,
-                        weekStartDate: weekStartDate,
-                        weekEndDate: getEndOfWeek(weekStartDate)
+                        weekStartDate: getStartOfWeek(weekKey),
+                        weekEndDate: getEndOfWeek(weekKey)
                     };
-
                     const startDateFormatted = weekData.weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     const endDateFormatted = weekData.weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-                    weeksData.push({
+                    return {
                         weekRange: `${startDateFormatted} - ${endDateFormatted}`,
                         totalKcal: weekData.totalKcal,
                         weeklyTarget: WEEKLY_KCAL_TARGET_TOTAL,
-                        excess: weekData.totalKcal - WEEKLY_KCAL_TARGET_TOTAL 
-                    });
-                }
-                
+                        excess: weekData.totalKcal - WEEKLY_KCAL_TARGET_TOTAL
+                    };
+                });
+
                 console.log(`[GET History] Successfully retrieved and aggregated data for ${weeksData.length} weeks.`);
                 return res.status(200).json({ history: weeksData });
 
             } catch (error) {
                 console.error('[GET History] Notion API error:', error.message);
-                const errorMessage = error.body ? JSON.parse(error.body).message : error.message;
-                return res.status(500).json({ error: 'Failed to fetch historical data from Notion.', details: errorMessage });
+                return res.status(500).json({ error: 'Failed to fetch historical data from Notion.', details: formatError(error) });
             }
         } else { // Default GET behavior: fetch today's data
             console.log('[GET] Fetching today\'s data...');
@@ -197,7 +146,7 @@ export default async function handler(req, res) {
                     sorts: [
                         {
                             // Sort by created_time to get items in order of logging for today
-                            timestamp: 'created_time', 
+                            timestamp: 'created_time',
                             direction: 'descending'
                         }
                     ]
@@ -219,8 +168,7 @@ export default async function handler(req, res) {
 
             } catch (error) {
                 console.error('[GET Today] Notion API error:', error.message);
-                const errorMessage = error.body ? JSON.parse(error.body).message : error.message;
-                return res.status(500).json({ error: 'Failed to retrieve Notion items for today.', details: errorMessage });
+                return res.status(500).json({ error: 'Failed to retrieve Notion items for today.', details: formatError(error) });
             }
         }
     }
@@ -231,7 +179,7 @@ export default async function handler(req, res) {
 
             // Ensure description is always a string and trimmed.
             description = typeof description === 'string' ? description.trim() : '';
-            
+
             // The Notion API requires the title property to NOT be empty.
             // Using a single space makes it appear blank in Notion's UI.
             const contentForNotionTitle = description === '' ? ' ' : description;
