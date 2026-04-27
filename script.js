@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const kcalProgressBarContainer = document.getElementById('kcal-progress-bar-container');
     const kcalProgressFill = document.getElementById('kcal-progress-fill');
     const kcalProgressText = document.getElementById('kcal-progress-text');
-    const KCAL_CAP = 1500;
+    const KCAL_CAP = 1420;
 
     const tabCategoryBtn = document.getElementById('tab-category');
     const tabTodayBtn = document.getElementById('tab-today');
