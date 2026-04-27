@@ -5,11 +5,11 @@ const WEEKS_TO_FETCH = 4;
 
 const notionCategoryMap = {
     "Breakfast": "🥣 Breakfast",
-    "Collagen": "🦵Collagen",
+    "Snacks": "🍎 Snacks",
     "Coffee": "☕ Coffee",
     "Lunch": "🍽️ Lunch",
     "Exercise": "🧘 Exercise",
-    "Other": "✨ Other"
+    "Dinner": "🍽️ Dinner"
 };
 
 export default async function handler(req, res) {

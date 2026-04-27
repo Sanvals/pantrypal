@@ -287,11 +287,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const categoryData = btn.dataset.category;
                 const defaultColorClasses = {
                     "Breakfast": "border-sky-200 bg-sky-100 text-sky-800 hover:border-sky-400",
-                    "Collagen": "border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400",
+                    "Snacks": "border-violet-200 bg-violet-100 text-violet-800 hover:border-violet-400",
                     "Coffee": "border-amber-200 bg-amber-100 text-amber-800 hover:border-amber-400",
                     "Lunch": "border-lime-200 bg-lime-100 text-lime-800 hover:border-lime-400",
                     "Exercise": "border-teal-200 bg-teal-100 text-teal-800 hover:border-teal-400",
-                    "Other": "border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400",
+                    "Dinner": "border-slate-200 bg-slate-100 text-slate-800 hover:border-slate-400",
                 };
                 btn.className = `relative border-2 rounded-xl p-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-in-out ${defaultColorClasses[categoryData]}`;
                 const img = btn.querySelector('img');
@@ -300,10 +300,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     img.classList.add('ease-in');
                 }
             });
-
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
 
             cachedNotionItems = null; // Mark cache as stale for 'Today' tab
             lastNotionFetchTime = 0; // Reset fetch time
